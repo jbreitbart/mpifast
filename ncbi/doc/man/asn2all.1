@@ -1,0 +1,187 @@
+.TH ASN2ALL 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+asn2all \- generate reports from ASN.1 biological data
+.SH SYNOPSIS
+.B asn2all
+[\|\fB\-\fP\|]
+[\|\fB\-A\fP\ \fIacc\fP\|]
+[\|\fB\-T\fP\|]
+[\|\fB\-X\fP\|]
+[\|\fB\-a\fP\ \fItype\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-d\fP\ \fIpath\fP\|]
+[\|\fB\-f\fP\ \fIformat\fP\|]
+[\|\fB\-h\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-k\fP\|]
+[\|\fB\-l\fP\|]
+[\|\fB\-n\fP\ \fIpolicy\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIpath\fP\|]
+[\|\fB\-r\fP\|]
+[\|\fB\-v\fP\ \fIfilename\fP\|]
+[\|\fB\-x\fP\ \fIext\fP\|]
+.SH DESCRIPTION
+\fBasn2all\fP is primarily intended for generating reports from the
+binary ASN.1 Bioseq-set release files downloaded from the NCBI ftp
+site (ncbi-asn1 directory).
+It can produce GenBank and GenPept flatfiles, FASTA sequence files,
+INSDSet structured XML, TinySeq XML, and Sequin-style 5-column feature
+tables.
+.PP
+The release files (which have the extension \fB.aso.gz\fP) should be
+uncompressed with
+.BR gunzip (1),
+resulting in files with the extension \fB.aso\fP.
+For example, \fBgbpri1.aso\fP is the first file in the primate
+division, and the command
+.RS
+.sp
+gunzip gbpri1.aso.gz
+.sp
+.RE
+will result in \fBgbpri1.aso\fP being created.
+The original \fBgbpri1.aso.gz\fP file is removed after successful
+decompression.
+.PP
+In \fBasn2all\fP, the name of the file to be processed is specified by
+the \fB\-i\fP command line argument.
+Use \fB-a\ t\fP to indicate that it is a release file and \fB-b\fP to
+indicate that it is binary ASN.1.
+A text ASN.1 file obtained from Entrez can be processed by using
+\fB-a\ a\fP instead of \fB-a\ t\ -b\fP.
+.PP
+Nucleotide and protein records can be processed simultaneously.
+Use the \fB-o\fP argument to indicate the nucleotide output file, and
+the \fB-v\fP argument for the protein output file.
+.PP
+The \fB-f\fP argument determines the format to be generated, and is
+documented in more detail (along with other options) in the following
+section.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-A\fP\ \fIacc\fP
+Accession to fetch
+.TP
+\fB\-T\fP
+Use Threads
+.TP
+\fB\-X\fP
+EXtended qualifier output
+.TP
+\fB\-a\fP\ \fItype\fP
+Input ASN.1 type:
+.RS
+.PD 0
+.IP a
+any (autodetected; default)
+.IP e
+Seq-entry
+.IP b
+Bioseq
+.IP s
+Bioseq-set
+.IP m
+Seq-submit
+.IP t
+batch processing (suitable for official releases; autodetects specific type)
+.PD
+.RE
+.TP
+\fB\-b\fP
+Bioseq-set is Binary
+.TP
+\fB\-c\fP
+Bioseq-set is Compressed
+.TP
+\fB\-d\fP\ \fIpath\fP
+Path to indexed binary ASN.1 Data
+.TP
+\fB\-f\fP\ \fIformat\fP
+Output Format:
+.RS
+.PD 0
+.IP g
+GenBank/GenPept (default)
+.IP f
+FASTA
+.IP t
+Sequin-style 5-column feature table
+.IP y
+TinySet XML (akin to FASTA)
+.IP s
+INSDSet XML (akin to GenBank/GenPept)
+.IP a
+structurally equivalent text ASN.1
+.IP x
+structurally equivalent XML
+.IP c
+cache components
+.PD
+.RE
+.TP
+\fB\-h\fP
+Display extra Help message
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Input file name (standard input by default)
+.TP
+\fB\-k\fP
+Enable local fetching
+.TP
+\fB\-l\fP
+Lock components in advance
+.TP
+\fB\-n\fP\ \fIpolicy\fP
+Near FASTA policy:
+.RS
+.PD 0
+.IP a
+All
+.IP n
+Near only (default)
+.IP f
+Far only
+.PD
+.RE
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Nucleotide Output file name
+.TP
+\fB\-p\fP\ \fIpath\fP
+Path to files
+.TP
+\fB\-r\fP
+Enable Remote fetching
+.TP
+\fB\-v\fP\ \fIfilename\fP
+Protein output file name
+.TP
+\fB\-x\fP\ \fIext\fP
+File selection suffix when working with entire directories.
+(default is \fB.aso\fP)
+.SH EXAMPLES
+The command
+.RS
+.sp
+  asn2all -i gbpri1.aso -a t -b -f g -o gbpri1.nuc -v gbpri1.prt
+.sp
+.RE
+will generate GenBank and GenPept reports from \fBgbpri1.aso\fP.
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR asn2asn (1),
+.BR asn2ff (1),
+.BR asn2fsa (1),
+.BR asn2gb (1),
+.BR asn2idx (1),
+.BR asn2xml (1),
+.BR asndhuff (1),
+.BR gene2xml (1),
+.BR gunzip (1).

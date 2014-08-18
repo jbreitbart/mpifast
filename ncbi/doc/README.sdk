@@ -1,0 +1,29 @@
+These are the MS Word files containing the latest version of the NCBI C
+Software Development Toolkit (SDK). Sadly it is version 1.9, last updated
+August 1, 1994. It is lacking large sections on Entrez access interfaces,
+BLAST access, the internal object manager, and many alignment and editing
+tools. However, it is all we have. If you are serious about using these
+tools, read this which will get you started. Look in ncbi/demo. Look at
+our web site. Send us email.
+
+The document is about 300 pages long. If you would like a hardcopy, we will
+send you one. Just email to toolbox@ncbi.nlm.nih.gov, or phone 301-496-2475
+and ask for a hardcopy of the software toolkit manual to be mailed to you.
+Be sure to give us your name and address.
+
+You can also find an HTML version of the document online at
+   <http://www.ncbi.nlm.nih.gov/IEB/ToolBox/SDKDOCS/INDEX.HTML>
+   <ftp://ftp.ncbi.nlm.nih.gov/toolbox/ncbi_tools/sdkdoc/index.html>
+
+
+
+-------------------
+N.B.  Be advised that lately (since 2000) most of the development
+      in NCBI has been done in C++, using the NCBI C++ Toolkit:
+        <http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.TOC&depth=2>
+
+
+
+---------------------------------------------------------------
+$Date: 2006/08/28 23:12:15 $
+$Source: /src/NCBI/vault.ncbi/distrib/doc/README.sdk,v $

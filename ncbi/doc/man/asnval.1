@@ -1,0 +1,183 @@
+.TH ASNVAL 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+asnval \- validate ASN.1 biological sequence records
+.SH SYNOPSIS
+.B asnval
+[\|\fB\-\fP\|]
+[\|\fB\-A\fP\|]
+[\|\fB\-C\fP\ \fIN\fP\|]
+[\|\fB\-E\fP\ \fIstr\fP\|]
+[\|\fB\-G\fP\|]
+[\|\fB\-J\fP\|]
+[\|\fB\-L\fP\ \fIfilename\fP\|]
+[\|\fB\-M\fP\|]
+[\|\fB\-N\fP\ \fIflags\fP\|]
+[\|\fB\-P\fP\ \fIN\fP\|]
+[\|\fB\-Q\fP\ \fIN\fP\|]
+[\|\fB\-R\fP\ \fIN\fP\|]
+[\|\fB\-S\fP\ \fIN\fP\|]
+[\|\fB\-T\fP\|]
+[\|\fB\-X\fP\|]
+[\|\fB\-Y\fP\|]
+[\|\fB\-Z\fP\|]
+[\|\fB\-a\fP\ \fItype\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-d\fP\ \fIpath\fP\|]
+[\|\fB\-e\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-k\fP\|]
+[\|\fB\-l\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIpath\fP\|]
+[\|\fB\-r\fP\|]
+[\|\fB\-u\fP\|]
+[\|\fB\-v\fP\ \fIN\fP\|]
+[\|\fB\-x\fP\ \fIstr\fP\|]
+.SH DESCRIPTION
+\fBasnval\fP is a command-line tool to validate ASN.1-format
+biological sequence records.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-A\fP
+Validate Alignments
+.TP
+\fB\-C\fP\ \fIN\fP
+Max count
+.TP
+\fB\-E\fP\ \fIstr\fP
+Only Error Code to Show
+.TP
+\fB\-G\fP
+GI lookup from accession
+.TP
+\fB\-J\fP
+Require ISO-JTA?
+.TP
+\fB\-L\fP\ \fIfilename\fP
+Log File
+.TP
+\fB\-M\fP
+Match locus_tag against General ID
+.TP
+\fB\-N\fP\ \fIflags\fP
+Latitude-longitude / country flags
+.RS
+.PD 0
+.IP 0
+none
+.IP 1
+test state/province
+.IP 2
+ignore water exception
+.IP 3
+both of the above
+.PD
+.RE
+.TP
+\fB\-P\fP\ \fIN\fP
+Highest severity for error to show:
+.RS
+.PD 0
+.IP 0
+none
+.IP 1
+informational
+.IP 2
+warning
+.IP 3
+error (default for \fB-Q\fP)
+.IP 4
+grounds for rejection (default for \fB-P\fP, \fB-R\fP)
+.PD
+.RE
+.TP
+\fB\-Q\fP\ \fIN\fP
+Lowest severity for error to show, per \fBP\fP
+.TP
+\fB\-R\fP\ \fIN\fP
+Severity for error in return code, per \fBP\fP
+.TP
+\fB\-S\fP\ \fIN\fP
+Skip count
+.TP
+\fB\-T\fP
+Use Threads
+.TP
+\fB\-X\fP
+Exon splice check
+.TP
+\fB\-Y\fP
+Check against old IDs
+.TP
+\fB\-Z\fP
+Remote CDS product fetch
+.TP
+\fB\-a\fP\ \fItype\fP
+Input ASN.1 type:
+.RS
+.PD 0
+.IP a
+Any (autodetected; default)
+.IP e
+seq-Entry
+.IP b
+Bioseq
+.IP s
+bioseq-Set
+.IP m
+seq-subMit
+.IP t
+baTch bioseq-set
+.IP u
+batch seq-sUbmit
+.PD
+.RE
+.TP
+\fB\-b\fP
+Batch file is Binary
+.TP
+\fB\-c\fP
+Batch file is Compressed
+.TP
+\fB\-d\fP\ \fIpath\fP
+Path to Indexed Binary ASN.1 Data
+.TP
+\fB\-e\fP
+Ignore transcription/translation Exceptions
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single input file (standard input by default)
+.TP
+\fB\-k\fP
+Local fetching
+.TP
+\fB\-l\fP
+Lock components in advance
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Single output file
+.TP
+\fB\-p\fP\ \fIpath\fP
+Path to ASN.1 Files
+.TP
+\fB\-r\fP
+Remote Fetching from ID
+.TP
+\fB\-u\fP
+Recurse
+.TP
+\fB\-v\fP\ \fIN\fP
+Verbosity, from 0 (default) to 3
+.TP
+\fB\-x\fP\ \fIstr\fP
+File selection substring (\fB.ent\fP by default)
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR cleanasn (1),
+.BR sequin (1).

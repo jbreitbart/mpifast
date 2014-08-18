@@ -1,0 +1,32 @@
+.TH SORTBYQUOTE 1 2006-01-11 NCBI "NCBI Tools User's Manual"
+.SH NAME
+sortbyquote \- sort C/C++ code by quoted regions
+.SH SYNOPSIS
+.B sortbyquote
+[\|\fB\-\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-r\fP\|]
+.SH DESCRIPTION
+\fBsortbyquote\fP is a simple utility to sort a C or C++ code snippet
+so that the lines (typically elements of a static array for use in
+binary search) end up in case-insensitive order of the string literals
+they contain.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Input File Name (default = stdin)
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Output File Name (default = stdout)
+.TP
+\fB\-r\fP
+Reverse order
+.SH BUGS
+Escape sequences are not supported.
+.SH AUTHOR
+The National Center for Biotechnology Information.

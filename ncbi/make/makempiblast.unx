@@ -1,0 +1,148 @@
+# default flags for compiling and loading
+
+CFLAGS1 = -c -O
+LDFLAGS1 = -O
+CC = cc
+RAN = ls -l
+AR=ar
+NCBI_INCDIR = ../include
+NCBI_LIBDIR = ../lib
+
+MPIBLAST_SRCDIR = ../../src
+
+CFLAGS = $(CFLAGS1) -I../include -I$(NCBI_INCDIR) -DMPIBLAST_PIO
+LDFLAGS = $(LDFLAGS1) -I../include -I$(NCBI_INCDIR) -L$(NCBI_LIBDIR)
+
+SRCCOPY = cp -p
+
+##
+## some things to make
+##
+
+LIB1 = libmyncbi.a
+LIB2 = libmyncbiobj.a
+LIB3 = libmyncbitool.a
+
+# sources needed for indexing and parsing
+
+SRC_NCBI = myblast.c myblastool.c myblfmtutl.c myncbifile.c myncbisam.c \
+		   myobjalign.c myreaddb.c mytxalign.c
+
+SRC_MPIBLAST = blast_hooks.c
+
+SRC_FORMATDB = mpiblast_formatdb.c
+
+SRC_ALL = $(SRC_NCBI) $(SRC_MPIBLAST) $(SRC_FORMATDB)
+
+# objects needed for indexing and parsing
+
+OBJ1 = ncbibs.o wwwutils.o ncbierr.o ncbienv.o myncbifile.o \
+	ncbiprop.o ncbimath.o ncbimem.o ncbimisc.o \
+	ncbimsg.o ncbistr.o ncbisgml.o ncbitime.o ncbilang.o \
+	asnbufo.o asndebin.o asnenbin.o asngen.o asnio.o asnlex.o \
+	asnlext.o asnout.o asnprint.o asntypes.o asngenob.o gifgen.o \
+	togif.o ncbithrs.o regex.o tsprintf.o ncbiargs.o tree.o matrix.o \
+	ncbi_socket.o ncbi_buffer.o ncbi_types.o ncbi_core.o ncbi_core_c.o ncbi_util.o \
+	ncbi_priv.o ncbi_ansi_ext.o ncbi_connection.o ncbi_connector.o \
+	ncbi_connutil.o ncbi_file_connector.o ncbi_heapmgr.o \
+	ncbi_http_connector.o ncbi_memory_connector.o $(NCBI_LBSM_OBJ) \
+	ncbi_host_info.o ncbi_server_info.o ncbi_service.o \
+	ncbi_service_connector.o ncbi_ftp_connector.o ncbi_dispd.o \
+	ncbi_lb.o ncbi_local.o ncbi_socket_connector.o urlquery.o binary.o \
+	ncbi_sendmail.o asn_connection.o raw_scoremat.o \
+	drwnflpt.o drwnfspc.o drwnmfls.o ncbimain.o
+
+OBJ2 =	objacces.o myobjalign.o objall.o objbibli.o \
+	objfeat.o objgen.o objloc.o objmedli.o objpub.o \
+	objres.o objscoremat.o objseq.o objblock.o objcode.o objsset.o \
+	objsub.o objprt.o objfdef.o objalignloc.o objtable.o \
+	objpubme.o objmdrs.o objproj.o objgbseq.o objtseq.o objinsdseq.o objmacro.o \
+	objent2.o ent2api.o pmfapi.o objtax3.o tax3api.o objegkludge.o objentgene.o \
+	objmla2.o mla2api.o qblastapi.o vecscnapi.o objmim.o mimapi.o cddapi.o seqport.o \
+	sequtil.o prtutil.o simple.o tofasta.o tofile.o tomedlin.o \
+	valid.o alignmgr.o aliparse.o aliread.o alignval.o sqnutil1.o sqnutil2.o sqnutil3.o \
+	sqnutil4.o subutil.o edutil.o asn2ff1.o asn2ff2.o asn2ff3.o asn2ff4.o \
+	asn2ff5.o asn2ff6.o asn2gnb1.o asn2gnb2.o asn2gnb3.o asn2gnb4.o \
+	asn2gnb5.o asn2gnb6.o ftusrstr.o gbfeat.o gbftglob.o \
+	gbparint.o utilpars.o utilpub.o ffprint.o wprint.o satutil.o \
+	seqmgr.o objmgr.o gather.o accmmdbs.o acccn3ds.o lsqfetch.o findrepl.o \
+	codon.o jzcoll.o jzmisc.o maputil.o mconsist.o macroapi.o \
+	salpedit.o salpstat.o salpacc.o salprop.o salsap.o salstruc.o salutil.o \
+	udvseq.o blocks.o pgppop.o samutil.o ddvcolor.o viewmgr.o ddvcreate.o \
+	jsavlt.o needleman.o mytxalign.o fdlobj.o alignmgr2.o alnread.o acerdapi.o aceread.o
+   
+OBJ3 = csim.o db_slist.o dust.o blast_dust.o falign.o g_any.o sim2.o sim3.o sim4.o \
+	simutil.o slist.o sec.o tfuns.o toasn3.o toporg.o \
+	pobutil.o stsutil.o suggadj.o suggest.o suggslp.o \
+	myblast.o blastutl.o myblastool.o blastconcat.o splutil.o \
+	gapxdrop.o bandalg0.o bandalg1.o \
+	bandalg2.o bandalg3.o bandalg4.o bandalg5.o bandalgn.o blastkar.o \
+	actutils.o posit.o lookup.o myreaddb.o myncbisam.o ncbisort.o \
+	salign.o salptool.o urkutil.o urkpcc.o urkptpf.o urkepi.o \
+	urkfltr.o urkdust.o urksigu.o seg.o urkbias.o urkcnsrt.o urktree.o \
+	pseed3.o pattern1.o impatool.o posit2.o mbalign.o \
+	vecscrn.o mblast.o rpsutil.o kappa.o xmlblast.o bxmlobj.o \
+	dotseq.o spidey.o motif.o myblfmtutl.o
+
+OBJ4 = blast_hooks.o mpiblast_formatdb.o 
+
+## All things to make
+##
+all : copy .WAIT nocopy mpiblast
+
+nocopy : sources 
+
+sources : $(SRC_ALL)
+
+## To clean out the directory without removing make
+##
+clean :
+	- rm -f *.[acho]
+
+.NO_PARALLEL:	copy
+
+.WAIT:
+	echo Waiting...go
+
+## Implicit actions
+##
+
+
+## get all the source files
+##
+
+$(SRC_ALL) : copy
+
+copy :
+	- chmod -R ug+rw,o+r .
+	$(SRCCOPY) $(MPIBLAST_SRCDIR)/*.h ../include
+	$(SRCCOPY) $(MPIBLAST_SRCDIR)/*.hpp ../include
+	$(SRCCOPY) $(MPIBLAST_SRCDIR)/*.c .
+	- chmod -R ug+rw,o+r .
+
+## make libraries
+##
+
+$(LIB1) : $(OBJ1)
+	- rm -f $(LIB1)
+	$(AR) cru $(LIB1) $(OBJ1) 
+	$(SRCCOPY) $(LIB1) ../lib
+	$(RAN) ../lib/$(LIB1)
+
+$(LIB2) : $(OBJ2)
+	- rm -f $(LIB2)
+	$(AR) cru $(LIB2) $(OBJ2) 
+	$(SRCCOPY) $(LIB2) ../lib
+	$(RAN) ../lib/$(LIB2)
+
+$(LIB3) : $(OBJ3)
+	- rm -f $(LIB3)
+	$(AR) cru $(LIB3) $(OBJ3) 
+	$(SRCCOPY) $(LIB3) ../lib
+	$(RAN) ../lib/$(LIB3)
+
+mpiblast: $(LIB1) $(LIB2) $(LIB3) $(OBJ4)
+
+#flat2asn : flat2asn.o $(OBJ_P) $(LIBPARSE)
+#	$(CC) -o flat2asn $(LDFLAGS) flat2asn.o $(OBJ_P) ../lib/$(LIBPARSE) $(OTHERLIBS)
+

@@ -1,0 +1,76 @@
+#!/bin/sh
+# $Id: make-mac-bundle,v 1.1 2008/08/29 16:18:49 ucko Exp $
+#
+# Helper script to convert graphical Mac OS X applications into
+# bundles, so they can run properly under 10.5 (which has dropped
+# support for simply adding suitable resource forks).  Based on Greg
+# Ercolano's tips: http://www.seriss.com/people/erco/fltk/#MacBundle.
+
+set -e
+
+for app in "$@"; do
+    if test -x $app  &&  file -b $app | grep -q Mach-O; then
+        :
+    else
+        echo "Skipping $app, which appears not to be a Mac(h) executable."
+        continue
+    fi
+
+    base=`basename "$app"`
+    tmptree=$app.app.tmp$$
+    trap "rm -r $tmptree" 0 1 2 15
+    mkdir $tmptree
+    mkdir $tmptree/Contents
+    mkdir $tmptree/Contents/Resources
+    mkdir $tmptree/Contents/MacOS
+    echo APPLncbi > $tmptree/Contents/PkgInfo
+    case $base in
+        ddv      ) version=1.0   ;;
+        entrez2  ) version=9.5   ;;
+        *sequin* ) version=8.20  ;;
+        udv      ) version=1.0.2 ;;
+        *        ) version=0.0   ;;
+    esac
+    cat >$tmptree/Contents/Info.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+    <dict>
+        <key>CFBundleName</key>
+        <string>`basename $app`</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleVersion</key>
+        <string>59</string>
+        <key>CFBundleShortVersionString</key>
+        <string>$version</string>
+EOF
+    for d in "`dirname \"$0\"`"/xCode/ncbicguiapp "$NCBI"; do
+        if test -r $d/ncbi.icns; then
+            cp $d/ncbi.icns $tmptree/Contents/Resources/ncbi.icns
+            cat >>$tmptree/Contents/Info.plist <<EOF
+        <key>CFBundleIconFile</key>
+        <string>ncbi.icns</string>
+EOF
+            continue
+        fi
+    done
+    cat >>$tmptree/Contents/Info.plist <<EOF
+        <key>CFBundleSignature</key>
+        <string>none</string>
+    </dict>
+</plist>
+EOF
+    if test -e $app.app; then
+        mv $app.app $app.app.old  ||  true
+    fi
+    mv $tmptree $app.app
+    trap "" 0 1 2 15
+    mv $app $app.app/Contents/MacOS/$base
+    cat > $app <<EOF
+#!/bin/sh
+exec "\`dirname \\"\$0\\"\`/$base.app/Contents/MacOS/$base" "\$@"
+EOF
+    chmod +x $app
+    rm -rf $app.app.old
+done

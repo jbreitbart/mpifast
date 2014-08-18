@@ -1,0 +1,223 @@
+.TH TBL2ASN 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+tbl2asn \- prepare a GenBank submission using an ASCII feature table
+.SH SYNOPSIS
+.B tbl2asn
+[\|\fB\-\fP\|]
+[\|\fB\-B\fP\ \fIstr\fP\|]
+[\|\fB\-C\fP\ \fIstr\fP\|]
+[\|\fB\-D\fP\ \fIfilename\fP\|]
+[\|\fB\-E\fP\ \fIstr\fP\|]
+[\|\fB\-F\fP\ \fIstr\fP|]
+[\|\fB\-G\fP\ \fIstr\fP\|]
+[\|\fB\-H\fP\|]
+[\|\fB\-K\fP\|]
+[\|\fB\-L\fP\|]
+[\|\fB\-M\fP\ \fIstr\fP\|]
+[\|\fB\-O\fP\|]
+[\|\fB\-P\fP\|]
+[\|\fB\-Q\fP\|]
+[\|\fB\-R\fP\|]
+[\|\fB\-S\fP\|]
+[\|\fB\-T\fP\|]
+[\|\fB\-U\fP\|]
+[\|\fB\-W\fP\|]
+[\|\fB\-X\fP\ \fIstr\fP\|]
+[\|\fB\-Y\fP\ \fIfilename\fP\|]
+[\|\fB\-a\fP\ \fIstr\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-d\fP\|]
+[\|\fB\-e\fP\|]
+[\|\fB\-f\fP\ \fIfilename\fP\|]
+[\|\fB\-g\fP\|]
+[\|\fB\-h\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-j\fP\ \fIstr\fP\|]
+[\|\fB\-k\fP\|]
+[\|\fB\-l\fP\|]
+[\|\fB\-m\fP\|]
+[\|\fB\-n\fP\ \fIstr\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIstr\fP\|]
+[\|\fB\-q\fP\|]
+[\|\fB\-r\fP\ \fIstr\fP\|]
+[\|\fB\-s\fP\|]
+[\|\fB\-t\fP\ \fIfilename\fP\|]
+[\|\fB\-u\fP\|]
+[\|\fB\-v\fP\|]
+[\|\fB\-w\fP\ \fIN\fP\|]
+[\|\fB\-x\fP\ \fIstr\fP\|]
+[\|\fB\-y\fP\ \fIstr\fP\|]
+[\|\fB\-z\fP\|]
+.SH DESCRIPTION
+\fBtbl2asn\fP reads a template along with sequence and table files,
+and outputs ASN.1 for submission to GenBank. Thus, the submitter does
+not need to read each set of table and sequence files into
+Sequin. Furthermore, the template file can contain the organism and
+submitter information common to all records, obviating the need to
+input these data for each sequence/table pair.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-B\fP\ \fIstr\fP
+Alignment Beginning gap characters
+.TP
+\fB\-C\fP\ \fIstr\fP
+Genome Center tag
+.TP
+\fB\-D\fP\ \fIfilename\fP
+Descriptors file
+.TP
+\fB\-E\fP\ \fIstr\fP
+Alignment End gap characters
+.TP
+\fB\-F\fP
+Feature ID links (\fBo\fP by Overlap, \fBp\fP by Product)
+.TP
+\fB\-G\fP\ \fIstr\fP
+Alignment middle Gap characters
+.TP
+\fB\-H\fP
+Implicit gaps
+.TP
+\fB\-K\fP
+Safe Bioseq-set
+.TP
+\fB\-L\fP
+Force Local protein_id/transcript_id
+.TP
+\fB\-M\fP\ \fIstr\fP
+Alignment Match characters
+.TP
+\fB\-O\fP
+Allow run-on ORFs
+.TP
+\fB\-P\fP
+Alignment is Proteins
+.TP
+\fB\-Q\fP
+Special mRNA titles
+.TP
+\fB\-R\fP
+Remote fetching from ID
+.TP
+\fB\-S\fP
+Smart feature annotation
+.TP
+\fB\-T\fP
+Remote Taxonomy lookup
+.TP
+\fB\-U\fP
+Remove Unnecessary gene xref
+.TP
+\fB\-W\fP
+Log progress
+.TP
+\fB\-X\fP\ \fIstr\fP
+Alignment missing characters
+.TP
+\fB\-Y\fP\ \fIfilename\fP
+Read a comment string from \fIfilename\fP
+.TP
+\fB\-a\fP\ \fIstr\fP
+Accession
+.TP
+\fB\-b\fP
+Generate GenBank file
+.TP
+\fB\-c\fP
+Annotate longest ORF
+.TP
+\fB\-d\fP
+Read FASTAs as Delta
+.TP
+\fB\-e\fP
+Read PHRAP/ACE format
+.TP
+\fB\-f\fP\ \fIfilename\fP
+Single table file
+.TP
+\fB\-g\fP
+Input is a genomic product set
+.TP
+\fB\-h\fP
+Convert general ID to note
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single input file
+.TP
+\fB\-j\fP\ \fIstr\fP
+Source qualifiers
+.TP
+\fB\-k\fP
+Set conflict on mismatch
+.TP
+\fB\-l\fP
+Read FASTA+Gap Alignment
+.TP
+\fB\-m\fP
+Allow alternative starts
+.TP
+\fB\-n\fP\ \fIstr\fP
+Organism name
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Single output file
+.TP
+\fB\-p\fP\ \fIstr\fP
+Path to files
+.TP
+\fB\-q\fP
+Set sequence ID from input file name
+.TP
+\fB\-r\fP\ \fIstr\fP
+Path for results
+.TP
+\fB\-s\fP
+Read FASTAs as Set
+.TP
+\fB\-t\fP\ \fIfilename\fP
+Read template from \fIfilename\fP
+.TP
+\fB\-u\fP
+Convert GenProdSet to NucProtSet
+.TP
+\fB\-v\fP
+Validate
+.TP
+\fB\-w\fP \fIN\fP
+FASTA set class
+.RS
+.PD 0
+.IP 0
+unspecified (default)
+.IP 1
+population study
+.IP 2
+phylogenetic study
+.IP 3
+set of mutations
+.IP 4
+ecological sample study
+.PD
+.RE
+.TP
+\fB\-x\fP\ \fIstr\fP
+Suffix (default = \fB.fsa\fP)
+.TP
+\fB\-y\fP\ \fIstr\fP
+Comment
+.TP
+\fB\-z\fP
+Read FASTAs with gap lines
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR Psequin (1),
+.BR sbtedit (1),
+tbl2asn.txt,
+<http://www.ncbi.nlm.nih.gov/Sequin/table.html>.

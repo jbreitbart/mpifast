@@ -1,0 +1,235 @@
+.TH ASN2GB 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+asn2gb \- convert ASN.1 biological data to a GenBank-style flat format
+.SH SYNOPSIS
+.B asn2gb
+[\|\fB\-\fP\|]
+[\|\fB\-A\fP\ \fIaccession\fP\|]
+[\|\fB\-a\fP\ \fIasn-type\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-d\fP\|]
+[\|\fB\-f\fP\ \fIformat\fP\|]
+[\|\fB\-g\fP\ \fIN\fP\|]
+[\|\fB\-h\fP\ \fIN\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-j\fP\ \fIN\fP\|]
+[\|\fB\-k\fP\ \fIN\fP\|]
+[\|\fB\-l\fP\ \fIfilename\fP\|]
+[\|\fB\-m\fP\ \fImode\fP\|]
+[\|\fB\-n\fP\ \fIfilename\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\|]
+[\|\fB\-q\fP\ \fIfilename\fP\|]
+[\|\fB\-r\fP\|]
+[\|\fB\-s\fP\ \fIstyle\fP\|]
+[\|\fB\-t\fP\ \fIN\fP\|]
+[\|\fB\-u\fP\ \fIN\fP\|]
+.\" [\|\fB\-x\fP\ \fIacc\fP\|] \" disabled
+[\|\fB\-y\fP\ \fIN\fP\|]
+.SH DESCRIPTION
+\fBasn2gb\fP converts descriptions of biological sequences from NCBI's
+ASN.1 format to one of several flat-file formats, and is the successor
+to \fBasn2ff\fP(1).
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-A\fP\ \fIaccession\fP
+Accession to fetch
+.TP
+\fB\-a\fP\ \fIasn-type\fP
+ASN.1 Type:
+.RS
+.PD 0
+.IP a
+Any (autodetected; default)
+.IP e
+seq-Entry
+.IP b
+Bioseq
+.IP s
+bioseq-Set
+.IP m
+seq-subMit
+.IP t
+baTch bioseq-set
+.IP u
+batch seq-sUbmit
+.PD
+.RE
+.TP
+\fB\-b\fP
+Input file is binary
+.TP
+\fB\-c\fP
+Batch file is compressed
+.TP
+\fB\-d\fP
+Seq-loc minus strand
+.TP
+\fB\-f\fP\ \fIformat\fP
+Format:
+.RS
+.PD 0
+.IP b
+GenBank (default)
+.IP "bp or pb"
+GenBank and GenPept
+.IP e
+EMBL
+.IP p
+GenPept
+.IP q
+nucleotide GBSet (XML)
+.IP r
+protein GBSet (XML)
+.IP t
+Feature table only
+.IP x
+nucleotide INSDSet (XML)
+.IP y
+tiny seq (XML)
+.IP Y
+FASTA
+.IP z
+protein INSDSet (XML)
+.PD
+.RE
+.TP
+\fB\-g\fP\ \fIN\fP
+Bit flags (all default to off):
+.RS
+.PD 0
+.IP 1
+HTML
+.IP 2
+XML
+.IP 4
+ContigFeats
+.IP 8
+ContigSrcs
+.IP 16
+FarTransl
+.PD
+.RE
+.TP
+\fB\-h\fP\ \fIN\fP
+Lock/Lookup Flags (all default to off):
+.RS
+.PD 0
+.IP 8
+LockProd
+.IP 16
+LookupComp
+.IP 64
+LookupProd
+.PD
+.RE
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Input file name (default = stdin)
+.TP
+\fB\-j\fP\ \fIN\fP
+Start location (default is 0, beginning of sequence)
+.TP
+\fB\-k\fP\ \fIN\fP
+End location (default is 0, end of sequence)
+.TP
+\fB\-l\fP\ \fIfilename\fP
+Log file
+.TP
+\fB\-m\fP\ \fImode\fP
+Mode:
+.RS
+.PD 0
+.IP r
+Release
+.IP e
+Entrez
+.IP s
+Sequin (default)
+.IP d
+Dump
+.PD
+.RE
+.TP
+\fB\-n\fP\ \fIfilename\fP
+Asn2Flat Executable (default = asn2flat)
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Output file name (default = stdout)
+.TP
+\fB\-p\fP
+Propagate top descriptors
+.TP
+\fB\-q\fP\ \fIfilename\fP
+Ffdiff Executable (default = /netopt/genbank/subtool/bin/ffdiff)
+.TP
+\fB\-r\fP
+Enable remote fetching
+.TP
+\fB\-s\fP\ \fIstyle\fP
+Style:
+.RS
+.PD 0
+.IP n
+Normal (default)
+.IP s
+Segment
+.IP m
+Master
+.IP c
+Contig
+.PD
+.RE
+.TP
+\fB\-t\fP\ \fIN\fP
+Batch:
+.RS
+.PD 0
+.IP 1
+Report
+.IP 2
+Sequin/Release
+.IP 3
+asn2gb/asn2flat
+.IP 4
+asn2flat BSEC/nocleanup
+.IP 5
+oldasn2gb/newasn2gb
+.PD
+.RE
+\fB\-u\fP\ \fIN\fP
+Custom flags (all default to off):
+.RS
+.PD 0
+.IP 4
+Hide features
+.IP 1792
+Hide references
+.IP 8192
+Hide sources
+.IP 262144
+Hide translations
+.PD
+.RE
+.\" .TP
+.\" \fB\-x\fP\ \fIacc\fP
+.\" Accession to extract
+.TP
+\fB\-y\fP\ \fIN\fP
+Feature itemID
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR asn2all (1),
+.BR asn2asn (1),
+.BR asn2ff (1),
+.BR asn2fsa (1),
+.BR asn2xml (1),
+.BR asndhuff (1),
+.BR insdseqget (1),
+asn2gb.txt.

@@ -1,0 +1,81 @@
+mpiBLAST 1.6.0 Release Notes
+----------------------------
+
+This release incorporates performance optimizations that enable mpiBLAST to scale efficiently on petascale parallel computers. Part of the optimizations are presented in H. Lin et. al.'s SC08 publication "Massively Parallel Genomic Sequence Search on the Blue Gene/P Architecture." (http://www.mpiblast.org/Publications) The efficacy of the newly designed algorithm core has been tested on up to 32,768 compute cores on a Blue Gene/P system.
+
+At a high level, the following are changes as compared to the previous release:
+* Adopted a hierarchical scheduling architecture that signifcantly improves program scalability on massively parallel computers.
+* Updated NCBI BLAST support to a more recent version (2.2.20, released April 2009)
+* Resolved the performance issues when searching large query files.
+* Integrated support of IBM Blue Gene/L and Blue Gene/P systems.
+
+Notes:
+1) This release does not support anchor output formats (m=1-6).
+2) This release does not support Windows systems.  
+
+
+Installation
+------------
+
+Please see the INSTALL file for details. Note that the installation procedures are slightly different than those of the previous release. 
+
+
+Software Architecture
+---------------------
+
+The newly designed mpiBLAST algorithm adopts a hierarchical scheduling architecture. At the top level, MPI processes in the system are organized into equal-sized partitions, which are supervised by a dedicated supermaster process. The supermaster is responsible for assigning tasks to different partitions and handling inter-partition load balancing. Within each partition, there is one master process and many worker processes. The master is responsible for coordinating both computation and I/O scheduling in a partition. The master periodically fetches a subset of query sequences (defined as a query segment) from the supermaster and assigns them to workers, and coordinates the output processing of queries that have been processed in the partition. Such a hierarchical design avoids creating scheduling bottlenecks as the system size grows by distributing the scheduling workload to multiple masters.
+
+
+Important Options
+-----------------
+
+--partition-size
+    An integer number must be supplied as an argument for this option.
+	Enable hierarchical scheduling with multiple masters. The partition size equals the number of workers in a partition plus 1 (the master process). For example, --partition-size=17 creates partitions consisting of 16 workers and 1 master. An individual output file will be generated for each partition. By default, mpiBLAST uses one partition, i.e., the partition size equals to the number of all MPI processes minus 1 (the supermaster process).
+
+--replica-group-size
+    An integer number must be supplied as an argument for this option.
+    Specify how database fragments are replicated within a partition. Suppose the total number of database fragments is F, the number of MPI processes in a partition is N, and the replica-group-size is G, then in total (N-1)/G database replicas will be distributed in the partition (the master process does not host any database fragments), and each worker process will host F/G fragments. In other words, a database replica will be distributed to every G MPI processes.
+
+--query-segment-size
+    An integer number must be supplied as an argument for this option. The default value is 5.
+	Specify the number of query sequences that will be fetched from the supermaster to the master at a time. This parameter controls the granularity of load balancing between different partitions.  
+
+--use-parallel-write
+    No argument is needed for this option. 
+    Enable the high-performance parallel output solution. Note the current implementation of parallel-write does not require a parallel file system. See more discussion in the "Performance Guide" section.
+
+--use-virtual-frags
+    No argument is needed for this option.
+    Enable workers to cache database fragments in memory instead of on local storage. This is recommended on diskless platforms where there is no local storage attaching to each processor. Default to be enabled on Blue Gene systems.
+
+--predistribute-db
+    No argument is needed for this option.
+    Pre-distribute database fragments to workers before the search begins. Especially useful in reducing data input time when multiple database replicas need to be distributed to workers.
+
+--output-search-stats
+    No argument is needed for this option.
+    Enable output of the search statistics in the pairwise and XML output format. This could cause performance degradation on some diskless systems such as Blue Gene.
+
+
+Performance Guide
+-----------------
+
+* Database partitioning
+    Generally speaking, using fewer database fragments will incur lower parallel overhead, while using more database fragments will have better load balance. If you have many query sequences to search and load imbalance is not a big concern, try to partition the database into fewer fragments (the smallest number of fragments supported by mpiformatdb is 2). On the other hand, if you have very expensive query sequences to search, partitioning the database into a larger number of fragments can give you shorter response time per query and better load balance. Please see the "Database fragment placement" bullet for more considerations about database partitioning.
+
+* Database replication
+    For typical search workloads, the parallel overhead of mpiBLAST will increase with the number of database fragments. Database replication allows mpiBLAST to scale without increasing the number of database fragments along with the number of processors. In other words, the database can be partitioned into a smaller number of fragments even when deployed on a large number of processors. To use database replication, simply specify the replica-group-size argument. Beside, turning on the predistribute-db option can highly reduce the distribution time of multiple database replicas.
+
+* Database fragments placement
+    The amount of data placed on each processor, determined by both database partitioning and database replication, plays an important role in the memory utilization of each processor. For example, if the total number of database fragments is F, the replica-group-size is G, and the fragment size is S, then each worker processor will be assigned (F/G * S) amount of sequence data. To avoid paging, users need to make sure there is enough memory for a processor to store the assigned sequence data as well as the intermediated search results. Since the amounts of intermediate results generated by the BLAST search vary by different queries, databases and search types, an initial profiling can help users find the optimal configuration for their BLAST search jobs. In other words, obtaining optimal performance is highly system and workload dependent. Therefore, some tuning of database placement will be necessary in order to achieve optimal performance. 
+
+* Diskless clusters
+    On diskless clusters, users are recommended to turn on explicit database caching with the use-virtual-frags option. By doing so, the database fragments and the input queries will first be loaded to processors' memory buffers and kept there for successive searches. This avoids the repeated I/O operations to the shared storage.
+
+* Hierarchical scheduling
+	mpiBLAST uses a single partition by default. This configuration should be sufficient for small-to-medium-scale 
+clusters with a few hundreds of compute nodes. Note that database replication should be considered even with one partition. On larger-scale systems, enable multiple masters through the partition-size option is highly recommended. The optimal configuration of partition size is system dependent, and hence initial performance tuning will be helpful in determining an appropriate value for the partition size on a specific system.
+
+* Choosing output strategies
+    By default, mpiBLAST uses the master process to collect and write results within a partition. This is the most portable output solution and should work on any file system. However, we highly recommend using the parallel-write solution (enabled with use-parallel-write option) on platforms with fast network interconnection and high-throughput shared file systems (not necessary to be parallel file systems). Note the only requirement of the current parallel-write solution is that the underneath file system supports POSIX byte range locking. Initial profiling can help decide which output solution works better on your platform. One related note, on NFS file systems, the NFS directory needs to be mounted with the "no attribute caching" (noac) option in order to use parallel-write. Interested users can refer to http://www-unix.mcs.anl.gov/mpi/mpich1/docs/install/node38.htm for more details.

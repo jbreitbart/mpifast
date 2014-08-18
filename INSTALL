@@ -1,0 +1,96 @@
+Installation for Unix/Linux/BSD
+-------------------------------
+
+There are four steps to installing mpiBLAST from source.
+
+   1. Install MPI (if not already installed)
+   2. Download and extract mpiBLAST
+   3. Compile and install mpiBLAST
+   4. Configure mpiBLAST by editing the ~/.ncbirc file 
+
+Each of these steps are described in more detail below.
+
+1. MPI installation
+
+Two popular free versions of MPI are MPICH2 and Open MPI. A successful installation of either is sufficient for mpiBLAST to work. Many OS vendors bundle MPI implementations with the system, making an installation from source unnecessary.
+
+2. Download and extract mpiBLAST
+
+2a) Download mpiBLAST-x.y.z.tar.tgz or mpiBLAST-x.y.z.tar.tbz from the Downloads page of www.mpiblast.org.
+
+2b) Extract mpiBLAST
+tar -xvzf mpiBLAST-x.y.z.tgz
+or
+tar -xvjf mpiBLAST-x.y.z.tbz
+
+3. Compile and install mpiBLAST
+
+3a) Change to the directory containing mpiBLAST
+cd /path/to/mpiBLAST-x.y.z
+
+3b) Prepare platform-depdent make files for compiling NCBI BLAST (currently only applicable to IBM Blue Gene systems).
+	If you are installing mpiBLAST on IBM Blue Gene/L, please review ./ncbi/platform/bluegenel.ncbi.mk and make sure that the compiling configuration (i.e., variables NCBI_AR, NCBI_CC, NCBI_CFLAGS1, NCBI_LDFLAGS1) matches your environment. The configuration file is 
+./ncbi/platform/bluegenep.ncbi.mk on Blue Gene/P systems.
+
+3c) Configure mpiBLAST
+General Unix systems:
+./configure 
+
+IBM Blue Gene/L systems:
+./configure ARCH=bluegenel --host=powerpc64-unknown-linux-gnu
+
+IBM Blue Gene/P systems:
+./configure ARCH=bluegenep 
+
+Useful extra options to 'configure' in addition to the standard configure flags:
+
+    * --prefix=/path/to/installation/directory
+      Specifies the location where mpiBLAST-pio should be installed. (Default is /usr/local/)
+
+    * --with-mpi=/path/to/mpi
+      Specifies location of MPI headers and libraries.
+
+    * CONFIG_LIBC macro (NOT applicable to Blue Gene systems).
+      Specify the path of the C runtime library. mpiBLAST-pio needs to hijack the output function "fwrite" in the C runtime library, which is assumed to be "libc.so.6" by default. Configure this macro when a different libc is used on your platform. The following error message will be reported by mpiBLAST-pio if the libc is not configured properly:
+"Error opening C runtime library: libc.so.6. Use CONFIG_LIBC in the configure script to specify the correct libc."
+You may consult the system administrator to find out the correct libc. Or you can use "ldd" to search the libc on Linux like operating systems. Go to the src directory under mpiblast-x.y.z-pio, typing "ldd mpiblast" will give you a list of depended shared libraries. An example output on the SGI Alitx is like:
+        linux-gate.so.1 =>  (0xa000000000000000)
+        libpthread.so.0 => /lib/libpthread.so.0 (0x200000000005c000)
+        libdl.so.2 => /lib/libdl.so.2 (0x200000000010c000)
+        libmpi.so => /usr/lib/libmpi.so (0x2000000000124000)
+        libmpi++.so => /usr/lib/libmpi++.so (0x2000000003ba4000)
+        libstdc++.so.5 => /usr/lib/libstdc++.so.5 (0x2000000003c08000)
+        libm.so.6.1 => /lib/libm.so.6.1 (0x2000000003d7c000)
+        libgcc_s.so.1 => /lib/libgcc_s.so.1 (0x2000000003e30000)
+        libc.so.6.1 => /lib/libc.so.6.1 (0x2000000003e60000)
+        /lib/ld-linux-ia64.so.2 (0x2000000000000000)
+        librt.so.1 => /lib/librt.so.1 (0x2000000004098000)
+It suggests libc.so.6.1 is likely to be the libc being used. Rebuild mpiBLAST-pio by adding CONFIG_LIBC to the configure options:
+./configure CONFIG_LIBC=libc.so.6.1 ...    
+
+3d) Build NCBI BLAST
+make ncbi
+
+3e) Build mpiBLAST
+make
+
+3f) Install mpiBLAST
+make install
+(If the --prefix configure option wasn't used then mpiBLAST will be placed in /usr/local and root privileges will probably be required to install it)
+
+4. Configure mpiBLAST by editing the ~/.ncbirc file
+
+Before running mpiBLAST-pio, it is necessary to configure the shared and local storage paths that each node will use to access the database. A shared storage path is usually a path to a directory mounting to a file server such as NFS and AFS, or parallel file systems such as Lustre, PVFS2 and GPFS. The local storage path is typically a subdirectory within the /tmp directory, e.g. /tmp/mpiblast. As worker nodes search the database, they will copy fragments to the local storage directory. During subsequent searches of the same database, the fragments will already reside in local storage and thus will not need to be copied. Note that diskless nodes can be supported by setting the local storage path to be the same as the shared storage path. To configure mpiBLAST create a .ncbirc file in your home directory that looks like:
+
+[NCBI]
+Data=/path/to/mpiBLAST-x.y.z/ncbi/data
+
+[BLAST]
+BLASTDB=/path/to/shared/storage
+BLASTMAT=/path/to/mpiBLAST-x.y.z/ncbi/data
+
+[mpiBLAST]
+Shared=/path/to/shared/storage
+Local=/path/to/local/storage
+
+The Data variable gives the location of the NCBI Data directory containing BLOSUM and PAM scoring matrices, among other things. The scoring matrix files are necessary for any type of protein BLAST search and should be accessible by all cluster nodes. The BLASTMAT variable also specifies the path to the scoring matrices, and will usually be identical to the Data variable. The BLASTDB variable tells standard NCBI blastall (not mpiBLAST) where to find BLAST databases. As previously mentioned, the Shared and Local variables give the shared and local database paths, respectively. By setting BLASTDB to the same path as Shared, it is possible for NCBI blastall to share the same databases that mpiBLAST uses. In such a configuration, be sure to format all databases with mpiformatdb rather than formatdb.

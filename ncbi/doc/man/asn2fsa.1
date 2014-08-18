@@ -1,0 +1,138 @@
+.TH ASN2FSA 1 2005-05-16 NCBI "NCBI Tools User's Manual"
+.SH NAME
+asn2fsa \- convert biological sequence data from ASN.1 to FASTA
+.SH SYNOPSIS
+.B asn2fsa
+[\|\fB\-\fP\|]
+[\|\fB\-A\fP\ \fIacc\fP\|]
+[\|\fB\-D\fP\|]
+[\|\fB\-L\fP\ \fIfilename\fP\|]
+[\|\fB\-T\fP\|]
+[\|\fB\-a\fP\ \fItype\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-d\fP\ \fIpath\fP\|]
+[\|\fB\-e\fP\ \fIN\fP\|]
+[\|\fB\-f\fP\ \fIpath\fP\|]
+[\|\fB\-g\fP\|]
+[\|\fB\-h\fP\ \fIfilename\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-k\fP\|]
+[\|\fB\-l\fP\|]
+[\|\fB\-m\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIpath\fP\|]
+[\|\fB\-q\fP\ \fIfilename\fP\|]
+[\|\fB\-r\fP\|]
+[\|\fB\-s\fP\|]
+[\|\fB\-u\fP\|]
+[\|\fB\-v\fP\ \fIfilename\fP\|]
+[\|\fB\-x\fP\ \fIstr\fP\|]
+[\|\fB\-z\fP\|]
+.SH DESCRIPTION
+\fBasn2fsa\fP converts biological sequence data from ASN.1 to FASTA.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-A\fP\ \fIacc\fP
+Accession to fetch
+.TP
+\fB\-D\fP
+Use Dash for Gap
+.TP
+\fB\-L\fP\ \fIfilename\fP
+Log file
+.TP
+\fB\-T\fP
+Use Threads
+.TP
+\fB\-a\fP\ \fItype\fP
+Input ASN.1 type:
+.RS
+.PD 0
+.IP a
+any (autodetected; default)
+.IP e
+Seq-entry
+.IP b
+Bioseq
+.IP s
+Bioseq-set
+.IP m
+Seq-submit
+.IP t
+batch processing (suitable for official releases; autodetects specific type)
+.PD
+.RE
+.TP
+\fB\-b\fP
+Bioseq-set is Binary
+.TP
+\fB\-c\fP
+Bioseq-set is Compressed
+.TP
+\fB\-d\fP\ \fIpath\fP
+Path to ReadDB Database
+.TP
+\fB\-e\fP\ \fIN\fP
+Line length (70 by default; may range from 10 to 120)
+.TP
+\fB\-f\fP\ \fIpath\fP
+Path to indexed FASTA data
+.TP
+\fB\-g\fP
+Expand delta gaps into \fBN\fPs
+.TP
+\fB\-h\fP\ \fIfilename\fP
+Far component cache output file name
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single input file (standard input by default)
+.TP
+\fB\-k\fP
+Local fetching
+.TP
+\fB\-l\fP
+Lock components in advance
+.TP
+\fB\-m\fP
+Master style for near segmented sequences
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Nucleotide Output file name
+.TP
+\fB\-p\fP\ \fIpath\fP
+Path to ASN.1 Files
+.TP
+\fB\-q\fP\ \fIfilename\fP
+Quality score output file name
+.TP
+\fB\-r\fP
+Remote fetching from NCBI
+.TP
+\fB\-s\fP
+Far genomic contig for quality scores
+.TP
+\fB\-u\fP
+Recurse
+.TP
+\fB\-v\fP\ \fIfilename\fP
+Protein output file name
+.TP
+\fB\-x\fP\ \fIstr\fP
+File selection substring (\fB.ent\fP by default) [String]
+.TP
+\fB\-z\fP
+Print quality score gap as -1
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR asn2all (1),
+.BR asn2asn (1),
+.BR asn2ff (1),
+.BR asn2gb (1),
+.BR asn2xml (1),
+.BR asndhuff (1).

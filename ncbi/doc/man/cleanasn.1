@@ -1,0 +1,125 @@
+.TH CLEANASN 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+cleanasn \- clean up irregularities in NCBI ASN.1 objects
+.SH SYNOPSIS
+.B cleanasn
+[\|\fB\-\fP\|]
+[\|\fB\-F\fP\ \fIstr\fP\|]
+[\|\fB\-K\fP\ \fIstr\fP\|]
+[\|\fB\-N\fP\ \fIstr\fP\|]
+[\|\fB\-R\fP\|]
+[\|\fB\-T\fP\|]
+[\|\fB\-a\fP\ \fIstr\fP\|]
+[\|\fB\-b\fP\|]
+[\|\fB\-c\fP\|]
+[\|\fB\-f\fP\ \fIstr\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-l\fP\ \fIfilename\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIpath\fP\|]
+[\|\fB\-r\fP\ \fIpath\fP\|]
+[\|\fB\-x\fP\ \fIext\fP\|]
+.SH DESCRIPTION
+\fBcleanasn\fP is a utility program to clean up irregularities in NCBI
+ASN.1 objects.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-F\fP\ \fIstr\fP
+Clean up features, per the flags in str:
+.RS
+.PD 0
+.IP u
+Remove User-objects
+.IP d
+Remove db_xrefs
+.IP r
+Remove redundant gene xrefs
+.PD
+.RE
+.TP
+\fB\-K\fP\ \fIstr\fP
+Perform a general cleanup, per the flags in str:
+.RS
+.PD 0
+.IP b
+BasicSeqEntryCleanup
+.IP s
+SeriousSeqEntryCleanup
+.PD
+.RE
+.TP
+\fB\-N\fP\ \fIstr\fP
+Clean up links, per the flags in str:
+.RS
+.PD 0
+.IP o
+LinkCDSmRNAbyOverlap
+.IP p
+LinkCDSmRNAbyProduct
+.IP r
+ReassignFeatureIDs
+.IP c
+ClearFeatureIDs
+.PD
+.RE
+.TP
+\fB\-R\fP
+Remote fetching from ID (NCBI sequence databases)
+.TP
+\fB\-T\fP
+Taxonomy Lookup
+.TP
+\fB\-a\fP\ \fIstr\fP
+ASN.1 type
+.RS
+.PD 0
+.IP a
+Any (default)
+.IP e
+Seq-entry
+.IP b
+Bioseq
+.IP s
+Bioseq-set
+.IP m
+Seq-submit
+.IP t
+Batch Processing [String]
+.PD
+.RE
+.TP
+\fB\-b\fP
+Input ASN.1 is Binary
+.TP
+\fB\-c\fP
+Input ASN.1 is Compressed
+.TP
+\fB\-f\fP\ \fIstr\fP
+Substring filter
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single input file (defaults to stdin)
+.TP
+\fB\-l\fP\ \fIfilename\fP
+Log file
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Single output file (defaults to stdout)
+.TP
+\fB\-p\fP\ \fIpath\fP
+Process all matching files in \fIpath\fP
+.TP
+\fB\-r\fP\ \fIpath\fP
+Path for results
+.TP
+\fB\-x\fP\ \fIext\fP
+File selection suffix for use with \fB\-p\fP (defaults to \fB.ent\fP)
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+asnval (1),
+sequin (1).

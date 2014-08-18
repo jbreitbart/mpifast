@@ -1,0 +1,59 @@
+.TH NPS2GPS 1 2007-10-19 NCBI "NCBI Tools User's Manual"
+.SH NAME
+nps2gps \- convert nucleotide-protein sets to ASN.1 genomic product sets
+.SH SYNOPSIS
+.B nps2gps
+[\|\fB\-\fP\|]
+[\|\fB\-F\fP\|]
+[\|\fB\-L\fP\|]
+[\|\fB\-R\fP\|]
+[\|\fB\-f\fP\ \fIstr\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIpath\fP\|]
+[\|\fB\-r\fP\ \fIpath\fP\|]
+[\|\fB\-x\fP\ \fIstr\fP\|]
+.SH DESCRIPTION
+\fBnps2gps\fP converts NCBI Bioseq-sets from simple nucleotide-protein
+sets to full genomic product sets complete with mRNA transcripts,
+which it outputs as text ASN.1.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-F\fP
+Map by Feature ID
+.TP
+\fB\-L\fP
+Lock components in advance
+.TP
+\fB\-R\fP
+Enable Remote fetching from ID
+.TP
+\fB\-f\fP\ \fIstr\fP
+Substring filter
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single input file (default = stdin)
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Single output file (default = stdout)
+.TP
+\fB\-p\fP\ \fIpath\fP
+Path to files for batch conversion
+.TP
+\fB\-r\fP\ \fIpath\fP
+Path for results of batch conversion
+.TP
+\fB\-x\fP\ \fIstr\fP
+File selection suffix for batch conversion (default = \fB.ent\fP)
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR asn2asn (1),
+.BR asn2ff (1),
+.BR asn2gb (1),
+.BR asn2xml (1),
+.BR asndhuff (1).

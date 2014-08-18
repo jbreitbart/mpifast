@@ -1,0 +1,197 @@
+AC_PREREQ(2.62)
+
+AC_INIT([mpiBLAST], [1.6.0])
+AC_CONFIG_AUX_DIR(m4)
+AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
+
+dnl Get the target and build system types and add appropriate options
+AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
+
+AC_PREFIX_DEFAULT(/usr/local)
+
+COMPILE_FLAGS=""
+LINK_FLAGS=""
+DEFAULT_DLL="yes"
+DEFAULT_PTHREAD="yes"
+
+# Check whether the user wants to use a particular MPI installation
+AC_ARG_WITH(mpi, [ --with-mpi=dir   MPI installation path],mpidir=$withval,mpidir=)
+if test -z "$MPICC" ; then MPICC=mpicc ; fi
+if test -z "$MPICXX" ; then MPICXX=mpicxx ; fi
+AC_PATH_PROGS(CC, $MPICC,, $mpidir:$PATH)
+AC_PATH_PROGS(CXX, $MPICXX,, $mpidir:$PATH)
+if test -z "$CC" ; then
+   AC_MSG_ERROR(no MPI C compiler found)
+elif test -z "$CXX" ; then
+   AC_MSG_ERROR(no MPI C++ compiler found)
+fi
+
+dnl Checks for programs.
+AC_PROG_CC($MPICC)
+AC_PROG_CXX($MPICXX)
+AC_PROG_RANLIB
+AC_PROG_INSTALL
+AC_PROG_LN_S 
+
+# Check if ROMIO is enabled
+AC_MSG_CHECKING(checking for MPI I/O support)
+AC_TRY_COMPILE([
+#include <stdio.h>
+#include "mpi.h"
+],
+	[MPI_File_open(MPI_COMM_WORLD, "foo", MPI_MODE_RDONLY, MPI_INFO_NULL, NULL);],
+	mpi_io_support=yes,
+	mpi_io_support=no)
+AC_MSG_RESULT($mpi_io_support)
+if test "$mpi_io_support" = "no" ; then
+   AC_ERROR(MPI I/O support required for mpiBLAST)
+fi
+
+AC_ARG_VAR(ARCH, [machine architecture])
+if test -z "${ARCH}"; then 
+   ARCH="normal"
+fi
+if test "$ARCH" = "bluegenel"; then
+   AC_DEFINE_UNQUOTED(ARCH_BGL, 1, "blue gene/l architecture")
+   if test -z "$LDFLAGS" ; then LDFLAGS="-L/bgl/BlueLight/ppcfloor/bglsys/lib -lc -lnss_files -lnss_dns -lresolv" ; fi
+   if test -z "$LIBS" ; then LIBS="-L/bgl/BlueLight/ppcfloor/bglsys/lib -lc -lnss_files -lnss_dns -lresolv" ; fi
+   DEFAULT_DLL="no"
+   DEFAULT_PTHREAD="no"
+fi
+if test "$ARCH" = "bluegenep"; then
+   AC_DEFINE_UNQUOTED(ARCH_BGP, 1, "blue gene/p architecture")
+   DEFAULT_DLL="no"
+fi
+AC_SUBST(ARCH)
+
+dnl Check for dynamic linking loader
+AC_ARG_ENABLE(dlloader, [ --enable-dlloader   Enable Dynamic Loading Libraries],
+			dlloader=$enableval,
+			dlloader=$DEFAULT_DLL)
+AC_MSG_CHECKING(whether dlloader is enabled)
+if test "$dlloader" = "yes" ; then
+   AC_DEFINE(HAVE_DLL, 1, [Define to 1 if your system supports dynamic linking loader functions])
+   LINK_FLAGS="$LINK_FLAGS -ldl"
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
+dnl Check for multi-threading
+AC_ARG_ENABLE(pthread, [ --enable-pthread   Enable multi-threading support],
+			pthread=$enableval,
+			pthread=$DEFAULT_PTHREAD)
+AC_MSG_CHECKING(whether multi-threading is enabled)
+if test "$pthread" = "yes" ; then
+   LINK_FLAGS="$LINK_FLAGS -lpthread"
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+AC_SYS_LARGEFILE
+
+dnl Check for getopt_long
+AC_CHECK_FUNC(getopt_long,
+[GETOPT_LONG_SYSTEM=""],
+[GETOPT_LONG_SYSTEM='getopt.$(OBJEXT) getopt1.$(OBJEXT)']
+)
+AC_SUBST([GETOPT_LONG_SYSTEM])
+
+dnl Check for getopt
+AC_CHECK_FUNC(getopt,
+[HAVE_GETOPT="true"],
+AC_DEFINE(GETOPT_UNDEFINED,[],"Define this if the system does not provide getopt")
+)
+
+dnl Get location of NCBI library
+AC_MSG_CHECKING(for NCBI library)
+AC_ARG_WITH(ncbi, [ --with-ncbi=dir  NCBI library installation path],
+		  NCBIdir="$withval", NCBIdir="$PWD/ncbi")
+CONFIG_NCBIDIR="$NCBIdir"
+AC_SUBST(CONFIG_NCBIDIR)
+AC_MSG_RESULT($NCBIdir)
+
+dnl Set type of the shared file system
+AC_ARG_VAR(CONFIG_SHARED_FS, [shared file system being used])
+if test -z "${CONFIG_SHARED_FS}"; then 
+	CONFIG_SHARED_FS="NFS"
+fi
+AC_DEFINE_UNQUOTED(SHARED_FS, "${CONFIG_SHARED_FS}", "shared file system being used")
+
+dnl Set libc library
+AC_ARG_VAR(CONFIG_LIBC, [libc library being used])
+if test -z "${CONFIG_LIBC}"; then
+	CONFIG_LIBC="libc.so.6"
+fi
+AC_DEFINE_UNQUOTED(LIBC, "${CONFIG_LIBC}", "libc library  being used")
+
+dnl Permit explicit usage of MPI_Alloc_mem
+dnl   It would be nice to have an autoconf macro to check for
+dnl   this automatically
+AC_MSG_CHECKING(for MPI_Alloc_mem)
+AC_ARG_ENABLE(MPI_Alloc_mem,
+[  --enable-MPI_Alloc_mem   Allocate message buffers with MPI_Alloc_mem.  Not supported with mpich 1.x.x],
+[case "${enableval}" in
+  yes) AC_DEFINE(HAVE_MPI_ALLOC_MEM,[],"Set to true if MPI_Alloc_mem is being used instead of malloc()") ;;
+  no)  AC_MSG_RESULT("no") ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-MPI_Alloc_mem) ;;
+esac],[mpi_alloc=false])
+
+
+Permit MPE timing compilation
+AC_MSG_CHECKING(for MPE timing option)
+AC_ARG_ENABLE(mpe-timing,
+[  --enable-mpe-timing   Causes mpiBLAST to log components of its running time using MPE],
+[case "${enableval}" in
+  yes) mpe_timing=true ;;
+  no)  mpe_timing=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-mpe-timing) ;;
+esac],[mpe_timing=false])
+if ($mpe_timing ="true") then
+        AC_DEFINE(MPE,[],"Set to true if the MPE profiling library is being used")
+fi
+AC_MSG_RESULT($mpe_timing)
+
+if ($mpe_timing ="true") then
+        dnl Get location of MPE library
+        AC_MSG_CHECKING(for MPE library)
+        AC_ARG_WITH(mpe,
+          [  --with-mpe=dir          give the directory prefix where the MPE header and libraries are installed.]
+          [                         [/usr/local]],
+          MPEdir="$withval", MPEdir="/usr/local")
+        dnl AC_DEFINE_UNQUOTED(CONFIG_MPEDIR, "$MPEdir")
+        CONFIG_MPEDIR="$MPEdir"
+        AC_SUBST(CONFIG_MPEDIR)
+        AC_MSG_RESULT($MPEdir)
+fi
+AM_CONDITIONAL(MPEXXX, test x$mpe_timing = xtrue)
+
+dnl add target specific compiler flags
+if ( test "x$target_vendor" = "xapple") then
+	LINK_FLAGS="$LINK_FLAGS -lstdc++ -framework CoreServices -lc"
+fi
+
+AC_SUBST(COMPILE_FLAGS)
+AC_SUBST(LINK_FLAGS)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+dnl AC_C_BIGENDIAN
+AC_HEADER_TIME
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+
+dnl SAVE_LIBRARY_VERSION
+AC_SUBST(LIBTOOL_VERSION_INFO)
+
+AM_CONFIG_HEADER([src/config.h])
+AC_OUTPUT(Makefile src/Makefile)

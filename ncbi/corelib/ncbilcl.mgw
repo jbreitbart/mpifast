@@ -1,0 +1,170 @@
+/*   ncbilcl.h
+* ===========================================================================
+*
+*                            PUBLIC DOMAIN NOTICE
+*               National Center for Biotechnology Information
+*
+*  This software/database is a "United States Government Work" under the
+*  terms of the United States Copyright Act.  It was written as part of
+*  the author's official duties as a United States Government employee and
+*  thus cannot be copyrighted.  This software/database is freely available
+*  to the public for use. The National Library of Medicine and the U.S.
+*  Government have not placed any restriction on its use or reproduction.
+*
+*  Although all reasonable efforts have been taken to ensure the accuracy
+*  and reliability of the software and data, the NLM and the U.S.
+*  Government do not and cannot warrant the performance or results that
+*  may be obtained by using this software or data. The NLM and the U.S.
+*  Government disclaim all warranties, express or implied, including
+*  warranties of performance, merchantability or fitness for any particular
+*  purpose.
+*
+*  Please cite the author in any work or product based on this material.
+*
+* ===========================================================================
+*
+* File Name:  ncbilcl.h
+*
+* Author:  Gish, Kans, Ostell, Schuler
+*
+* Version Creation Date:   3/16/08
+*
+* $Revision: 1.1 $
+*
+* File Description:
+*               system dependent header
+*               MinGW version
+*
+* Modifications:
+* --------------------------------------------------------------------------
+*
+* ==========================================================================
+*/
+#ifndef _NCBILCL_
+#define _NCBILCL_
+
+/*********************** COMPILER DEFINITIONS ******************************/
+
+#ifndef WIN32
+#define WIN32
+#endif
+
+#define COMP_MINGW
+
+#define OS_MSWIN
+#define WIN_MSWIN
+#define WIN_DUMB
+#define OS_NT
+
+#ifndef FAR
+#define FAR
+#endif
+
+#ifndef NEAR
+#define NEAR
+#endif
+
+#ifndef EXPORT
+#define EXPORT
+#endif
+
+#define PLATFORM_NAME "Win32i"
+#define PROC_I80X86
+#define PROC_I80_386
+#ifndef PASCAL
+#define PASCAL __stdcall
+#define CDECL  __cdecl
+#endif
+
+#define HAVE_STRDUP 1
+
+
+/*----------------------------------------------------------------------*/
+/*      #includes                                                       */
+/*----------------------------------------------------------------------*/
+#include <stddef.h>
+#include <sys/types.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <errno.h>
+#include <float.h>
+
+
+/*----------------------------------------------------------------------*/
+/*      Missing ANSI-isms                                               */
+/*----------------------------------------------------------------------*/
+#ifndef FILENAME_MAX
+#define FILENAME_MAX 63
+#endif
+
+
+/*----------------------------------------------------------------------*/
+/*      Aliased Logicals, Datatypes                                     */
+/*----------------------------------------------------------------------*/
+#define PNTR FAR *
+#define HNDL NEAR *
+
+typedef int (FAR PASCAL *Nlm_FnPtr)();
+#define FnPtr Nlm_FnPtr
+
+
+/*----------------------------------------------------------------------*/
+/*      Misc Macros                                                     */
+/*----------------------------------------------------------------------*/
+#define PROTO(x)  x   /* Function prototypes are real */
+#define VPROTO(x) x   /* Prototype for variable argument list */
+
+#ifdef _MAC
+#define IS_BIG_ENDIAN
+#define DIRDELIMCHR     ':'
+#define DIRDELIMSTR     ":"
+#define CWDSTR          ":"
+#else
+#define DIRDELIMCHR     '\\'
+#define DIRDELIMSTR     "\\"
+#define CWDSTR          "."
+#endif
+
+#ifndef IS_BIG_ENDIAN
+#define IS_LITTLE_ENDIAN
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 256
+#endif
+
+#define KBYTE           (1024)
+#define MBYTE           (1048576L)
+
+#define TEMPNAM_AVAIL
+
+
+/*----------------------------------------------------------------------*/
+/*      Macros for Floating Point                                       */
+/*----------------------------------------------------------------------*/
+#define EXP2(x)  exp((x)*LN2)
+#define LOG2(x)  (log(x)*(1./LN2))
+#define EXP10(x) exp((x)*LN10)
+#define LOG10(x) (log10(x))
+
+#ifndef TIME_MAX
+#define TIME_MAX  INT4_MAX
+#endif
+
+
+/*----------------------------------------------------------------------*/
+/*      Macros Defining Limits                                          */
+/*----------------------------------------------------------------------*/
+#ifdef WIN32
+#define MAXALLOC        0x7F000000 /* Largest permissible memory request */
+#else
+#define MAXALLOC        0x10000    /* Largest permissible memory request */
+#endif
+
+#endif  /* _NCBILCL_ */
+

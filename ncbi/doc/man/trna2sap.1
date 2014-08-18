@@ -1,0 +1,77 @@
+.TH TRNA2SAP 1 2006-01-11 NCBI "NCBI Tools User's Manual"
+.SH NAME
+trna2sap \- convert tRNAscan-SE output to an ASN.1 Seq-annot object
+.SH SYNOPSIS
+.B trna2sap
+[\|\fB\-\fP\|]
+[\|\fB\-a\fP\|]
+[\|\fB\-c\fP\ \fIstr\fP\|]
+[\|\fB\-f\fP\ \fIstr\fP\|]
+[\|\fB\-i\fP\ \fIfilename\fP\|]
+[\|\fB\-j\fP\|]
+[\|\fB\-m\fP\ \fIstr\fP\|]
+[\|\fB\-n\fP\ \fIstr\fP\|]
+[\|\fB\-o\fP\ \fIfilename\fP\|]
+[\|\fB\-p\fP\ \fIdir\fP\|]
+[\|\fB\-r\fP\ \fIdir\fP\|]
+[\|\fB\-s\fP\|]
+[\|\fB\-t\fP\ \fIstr\fP\|]
+[\|\fB\-u\fP\|]
+[\|\fB\-x\fP\ \fIstr\fP\|]
+.SH DESCRIPTION
+\fBtrna2sap\fP reads a text file produced by tRNAscan-SE and produces
+a corresponding ASN.1 Seq-annot in the format understood by other NCBI
+tools.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-\fP
+Print usage message
+.TP
+\fB\-a\fP
+Add tRNAscan-SE citation
+.TP
+\fB\-c\fP\ \fIstr\fP
+Comment
+.TP
+\fB\-f\fP\ \fIstr\fP
+Substring Filter
+.TP
+\fB\-i\fP\ \fIfilename\fP
+Single Input file (standard input by default)
+.TP
+\fB\-j\fP
+Just produce a five-column feature table, \(`a la \fBtrna2tbl\fP(1).
+.TP
+\fB\-m\fP\ \fIstr\fP
+ReMark
+.TP
+\fB\-n\fP\ \fIstr\fP
+Annotation Name (normally \(lqtRNA\(rq).
+.TP
+\fB\-o\fP\ \fIfilename\fP
+Single Output file (standard output by default)
+.TP
+\fB\-p\fP\ \fIdir\fP
+Path to files
+.TP
+\fB\-r\fP\ \fIdir\fP
+Path for Results
+.TP
+\fB\-s\fP
+Ignore Pseudo tRNAs
+.TP
+\fB\-t\fP\ \fIstr\fP
+Annotation Title (normally \(lqtRNAscan-SE\(rq).
+.TP
+\fB\-u\fP
+Ignore Undetermined tRNAs
+.TP
+\fB\-x\fP\ \fIstr\fP
+File selection suffix with \fB-p\fP (\fB.trna\fP by default).
+.SH AUTHOR
+The National Center for Biotechnology Information.
+.SH SEE ALSO
+.BR sequin (1),
+.BR tbl2asn (1),
+.BR trna2tbl (1).

@@ -1,0 +1,27 @@
+
+Directions for building the NCBI toolkit with CodeWarrior on Macintosh computers
+
+NB: Unless you have some specific reason to build with CodeWarrior, we
+recommend instead building with GCC from the command line, per the
+directions in readme.unx.
+
+1)  Increase the Preferred Size of the Script Editor to 7000 K using the
+    Finder.  Script Editor is the program that runs the AppleScript make*.met
+    files used to build the NCBI libraries and applications.
+2)  Take the sources of NCBI tookit at
+      ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/ncbi.tar.gz
+3)  Unpack them (for instance, by running
+      tar zxf ncbi.tar.gz
+    from the command line)
+4)  Drag the resulting ncbi folder inside the Metrowerks CodeWarrior 7.0
+    folder.  The make files expect this configuration, and will not work if
+    the ncbi folder is put anywhere else.
+5)  Inside the ncbi:make subfolder are two files with .met extensions.
+    Double click on CodeWarrior IDE 4.2.5, then run makeall.met.  The libraries
+    are built in the ncbi:lib folder.
+    You may need to restart CodeWarrior before running the make script.
+6)  After the libraries are built, run makedemo.met.  This builds application
+    programs such as Entrez, Sequin, and tbl2asn.
+7)  In order to run on MacOS versions earlier than 8.5, open the PowerPC
+    projects, click on AppearanceLib, choose Window->Project Inspector, check
+    Import Weak, and click the Save button.  Do the same for NavigationLib.
