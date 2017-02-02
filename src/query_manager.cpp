@@ -6,18 +6,18 @@
 ** following terms and conditions before using this software. Your use
 ** of this Software indicates your acceptance of this license agreement
 ** and all terms and conditions.
-** 
+**
 ** The parallel input/output (PIO) portion of this work was based in
 ** part on published research that was supported by the North Carolina
 ** State University and Oak Ridge National Laboratory. The actual
 ** implementation was completed at Virginia Tech in the summer of 2007.
-** 
+**
 ** Additionally, portions of this work are derivative works of the NCBI
 ** C Toolkit. Although, the NCBI C Toolkit is released freely without
 ** restriction under the terms of their license, the following files
 ** listed below, have been modified by Virginia Tech, and as such are
 ** redistributed under the terms of this license.
-** 
+**
 ** ncbi/api/txalign.c
 ** ncbi/corelib/ncbifile.c
 ** ncbi/object/objalign.c
@@ -29,20 +29,20 @@
 ** ncbi/tools/ncbisam.c
 ** ncbi/tools/readdb.c
 ** ncbi/tools/readdb.h
-** 
+**
 ** License:
-** 
+**
 ** This file is part of mpiBLAST.
-** 
-** mpiBLAST is free software: you can redistribute it and/or modify it 
-** under the terms of the GNU General Public License version 2 as published 
-** by the Free Software Foundation. 
-** 
+**
+** mpiBLAST is free software: you can redistribute it and/or modify it
+** under the terms of the GNU General Public License version 2 as published
+** by the Free Software Foundation.
+**
 ** Accordingly, mpiBLAST is distributed in the hope that it will be
 ** useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 ** of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ** General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU General Public License
 ** along with mpiBLAST. If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
@@ -80,9 +80,9 @@ QueryM::QueryM(const std::string& filename, bool use_vfile) {
 	_query_count = 0;
 
 	if(max_query_load > 0) {
-		_max_buf_size = max_query_load * 1024; 
+		_max_buf_size = max_query_load * 1024;
 	} else {
-		_max_buf_size = 4 * 1024 * 1024; 
+		_max_buf_size = 4 * 1024 * 1024;
 	}
 }
 
@@ -161,7 +161,7 @@ int QueryM::IndexQueries() {
 			throw __FILE__ "QueryM::IndexQueries -- Cannot open query for read";
 		}
 		ifs.read(buffer, len);
-		
+
 		ifs.close();
 
 		for(int i=0; i<len; i++) {
@@ -243,7 +243,7 @@ SeqEntryPtr QueryM::GetQueryEntry(int query_id) {
 		} else {
 			loaded = true;
 		}
-		
+
 		if(loaded) {
 			SeqEntryPtr cur_sep = bufferToQueryEntry(_query_dataM[query_id]);
 			if(cur_sep != NULL) {
@@ -278,7 +278,7 @@ int QueryM::LoadQueries(int start_query, int end_query) {
 	if(load_start == -1) {
 		return 0;
 	}
-	
+
 	double read_start = MPI_Wtime();
 	// fetch a chunk of data from the query file, parse and load it
 	int read_len = 0;
@@ -287,14 +287,14 @@ int QueryM::LoadQueries(int start_query, int end_query) {
 		if((read_len >= _max_buf_size) || (_query_dataM.find(i) != _query_dataM.end())) {
 			break;
 		}
-		read_len += _query_lenV[i];		
+		read_len += _query_lenV[i];
 		load_stop = i + 1;
 	}
 
 	if(debug_msg) {
 		LOG_MSG << "Loading queries from " << load_start << " to " << load_stop << " read_len " << read_len << endl;
 	}
-	
+
 	if(read_len > 0) {
 		char* buffer = new char[read_len];
 		ifstream ifs(_filename.c_str());
@@ -339,38 +339,38 @@ void QueryM::BcastIndexes(int brank) {
 	if(debug_msg) {
 		LOG_MSG << "Begin broadcasting query indexes" << endl;
 	}
-	
+
 	MPI_Bcast(&_query_count, 1, MPI_INT, brank, MPI_COMM_WORLD);
 
 	int* buf = new int[_query_count];
-	if(rank == brank) {
+	if(my_rank == brank) {
 		for(int i=0; i<_query_count; i++) {
 			buf[i]=_start_posV[i];
 		}
 	}
-	
+
 	MPI_Bcast(buf, _query_count, MPI_INT, brank, MPI_COMM_WORLD);
 
-	if(rank != brank) {
+	if(my_rank != brank) {
 		for(int i=0; i<_query_count; i++) {
 			_start_posV.push_back(buf[i]);
 		}
 	}
 
-	if(rank == brank) {
+	if(my_rank == brank) {
 		for(int i=0; i<_query_count; i++) {
 			buf[i]=_query_lenV[i];
 		}
 	}
-	
+
 	MPI_Bcast(buf, _query_count, MPI_INT, brank, MPI_COMM_WORLD);
 
-	if(rank != brank) {
+	if(my_rank != brank) {
 		for(int i=0; i<_query_count; i++) {
 			_query_lenV.push_back(buf[i]);
 		}
 	}
-	
+
 	delete buf;
 	if(debug_msg) {
 		LOG_MSG << "After broadcasting query indexes" << endl;
@@ -379,7 +379,7 @@ void QueryM::BcastIndexes(int brank) {
 
 void QueryM::CloneQueryData(int query_id, char* buffer) {
 	if(_query_dataM.find(query_id) == _query_dataM.end()) {
-		throw __FILE__ " QueryM::CloneQueryData -- query data has not been loaded";	
+		throw __FILE__ " QueryM::CloneQueryData -- query data has not been loaded";
 	}
 	memcpy(buffer, _query_dataM[query_id], _query_lenV[query_id]);
 }

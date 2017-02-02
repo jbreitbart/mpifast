@@ -6,18 +6,18 @@
 ** following terms and conditions before using this software. Your use
 ** of this Software indicates your acceptance of this license agreement
 ** and all terms and conditions.
-** 
+**
 ** The parallel input/output (PIO) portion of this work was based in
 ** part on published research that was supported by the North Carolina
 ** State University and Oak Ridge National Laboratory. The actual
 ** implementation was completed at Virginia Tech in the summer of 2007.
-** 
+**
 ** Additionally, portions of this work are derivative works of the NCBI
 ** C Toolkit. Although, the NCBI C Toolkit is released freely without
 ** restriction under the terms of their license, the following files
 ** listed below, have been modified by Virginia Tech, and as such are
 ** redistributed under the terms of this license.
-** 
+**
 ** ncbi/api/txalign.c
 ** ncbi/corelib/ncbifile.c
 ** ncbi/object/objalign.c
@@ -29,36 +29,36 @@
 ** ncbi/tools/ncbisam.c
 ** ncbi/tools/readdb.c
 ** ncbi/tools/readdb.h
-** 
+**
 ** License:
-** 
+**
 ** This file is part of mpiBLAST.
-** 
-** mpiBLAST is free software: you can redistribute it and/or modify it 
-** under the terms of the GNU General Public License version 2 as published 
-** by the Free Software Foundation. 
-** 
+**
+** mpiBLAST is free software: you can redistribute it and/or modify it
+** under the terms of the GNU General Public License version 2 as published
+** by the Free Software Foundation.
+**
 ** Accordingly, mpiBLAST is distributed in the hope that it will be
 ** useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 ** of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ** General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU General Public License
 ** along with mpiBLAST. If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
 /*
- * mpiformatdb - a program to format BLAST databases into several fragments 
+ * mpiformatdb - a program to format BLAST databases into several fragments
  * for mpiblast.
- * 
+ *
  * Overall program flow is as follows:
  * 1)  parse and sanity check command line options
  * 2)  read input sequence database in FastA format
- *     - index the location and length of each sequence entry 
+ *     - index the location and length of each sequence entry
  *       in the input file
- * 3)  write a temp file with the sequences reordered to be 
+ * 3)  write a temp file with the sequences reordered to be
  *     largest first
- * 4)  call the hacked version of formatdb's Main() function that 
+ * 4)  call the hacked version of formatdb's Main() function that
  *     always creates the desired number of database fragments.
  *     Since the hacked formatdb always adds the next sequence to
  *     the smallest fragment, fragment sizes are guaranteed to be
@@ -135,7 +135,7 @@ typedef struct FastAEntry {
 /**
  * count the number of characters in each sequence entry of seq_file (assuming it is FastA format)
  * @param seq_file	A C File object pointing to the open sequence file
- * @param seq_lengths	A map that will be filled with the lengths of each sequence entry 
+ * @param seq_lengths	A map that will be filled with the lengths of each sequence entry
  *			and the corresponding file offset of each entry
  * @param nucleotide	This variable is set to true if > 75% of the sequence looks like nucleotides
  * 			e.g. A, C, G, T
@@ -161,7 +161,7 @@ uint64 indexSeqLengths( string& input_filename , multimap< uint64, FastAEntry_t 
 	uint64 nucleotide_count = 0;
 	uint64 cur_seq_chars = 0;
 	uint64 cur_file_char = 0;
-	
+
 	char buffer[BUFFER_SIZE];
 	char defline = 0; //defline is used as bool
 	nucleotide = false;
@@ -171,16 +171,16 @@ uint64 indexSeqLengths( string& input_filename , multimap< uint64, FastAEntry_t 
 			cur_file_char++;
 			if (defline == 0 && buffer[i] == '>') {
 				defline = 1;
-				
+
 				global_dbseq_num++;
-				
+
 				if( total_chars > 0 ){
 					fat.end = cur_file_char - 1;
 					seq_lengths.insert( multimap< uint64, FastAEntry_t >::value_type( cur_seq_chars, fat ) );
 				}
 				cur_seq_chars = 0;
 				fat.start = fat.end;
-				
+
 			} else if ((buffer[i] == '\n') || (buffer[i] == '\r')) {
 				defline = 0;
 			} else if (defline == 0) {
@@ -198,22 +198,22 @@ uint64 indexSeqLengths( string& input_filename , multimap< uint64, FastAEntry_t 
 			printProgress(cur_file_char, file_size);
 
 		counter++ ;
-	}	
+	}
 	// add the final length/offset combination
-	
+
 	fat.end = cur_file_char;
 	seq_lengths.insert( multimap< uint64, FastAEntry_t >::value_type( cur_seq_chars, fat ) );
-	
+
 	// do nucleotide calculation
 	uint64 tmp_chars = total_chars;
 	tmp_chars *= 3;
 	tmp_chars /= 4;
 	nucleotide = nucleotide_count > tmp_chars;
-	
+
 	global_db_len = total_chars;
-	
-	cout << "Done, read " << counter << " lines\n" ;	
-	
+
+	cout << "Done, read " << counter << " lines\n" ;
+
 	return total_chars;
 }
 
@@ -232,7 +232,7 @@ void reorderInputSequences( FILE* out_file,  multimap< uint64, FastAEntry_t >& s
 		char buffer[BUFFER_SIZE];
 		char defline = 0; //defline is used as bool
 		size_t rdata;
-		size_t data_len = seqlen_iter->second.end - seqlen_iter->second.start; 
+		size_t data_len = seqlen_iter->second.end - seqlen_iter->second.start;
 		size_t rsize = BUFFER_SIZE < data_len ? BUFFER_SIZE : data_len;
 	 	while ((rdata = fread(buffer, 1, rsize, seqlen_iter->second.file)) != 0) {
 			data_len -= rdata;
@@ -241,7 +241,7 @@ void reorderInputSequences( FILE* out_file,  multimap< uint64, FastAEntry_t >& s
 		}
 		fprintf( out_file, "\n" );
 		output_progress++ ;
-		if ( print_status && (((output_progress % 10) == 0)  || output_progress == total_seqs)) 
+		if ( print_status && (((output_progress % 10) == 0)  || output_progress == total_seqs))
 			printProgress(output_progress, total_seqs);
 	}
 	fflush( out_file );
@@ -289,7 +289,7 @@ void terminateProgram(int sig){
  * Write an alias file (included to work around a windows-specific toolbox bug)
  * This is a rough copy of MpiBlast::WriteAliasFile
  */
-void WriteAliasFile( const MpiBlastConfig& config, const string& database_name, 
+void WriteAliasFile( const MpiBlastConfig& config, const string& database_name,
 					const string& alias_filename, const vector< int >& fragment_list)
 {
 	if(fragment_list.size() == 0){
@@ -297,7 +297,7 @@ void WriteAliasFile( const MpiBlastConfig& config, const string& database_name,
 		// this isn't an error condition when # workers > # db frags
 //		throw __FILE__ "(WriteAliasFile) Empty fragment_list";
 	}
-	
+
 	ofstream alias_file( alias_filename.c_str() );
 
 	if( !alias_file.is_open() ){
@@ -307,11 +307,11 @@ void WriteAliasFile( const MpiBlastConfig& config, const string& database_name,
 
 	alias_file << "TITLE " << config.localPath() << database_name << endl;
 	alias_file << "DBLIST";
-	
+
 	for( uint iter = 0; iter != fragment_list.size(); iter++ ){
 		alias_file << " " << database_name << ".";
 		char fragid[8];
-		
+
 		memset(fragid, 0, 8);
 
 		// always use 3 digit fragment identifiers
@@ -319,20 +319,20 @@ void WriteAliasFile( const MpiBlastConfig& config, const string& database_name,
 
 		alias_file << fragid;
 		if( debug_msg ){
-			LOG_MSG << "node " << rank << " fragid: " << fragid << endl;
+			LOG_MSG << "node " << my_rank << " fragid: " << fragid << endl;
 		}
 	}
 	alias_file << endl;
 	alias_file.close();
-		
+
 }
 
-	
+
 int main( int argc, char* argv[] ){
 	MpiBlastConfig config;	/**< configuration file parser */
 	string localPath, blast_cl, blast_type, input_filename;
 	multimap< uint64, FastAEntry_t > seq_lengths;	/**< sequence entry file offsets and lengths */
-	
+
 	log_stream = &cout;
 
 	if( argc < 2 ){
@@ -341,7 +341,7 @@ int main( int argc, char* argv[] ){
 		else
 			print_usage( argv[0] );
 	}
-	
+
 	signal( SIGINT, terminateProgram );
 	signal( SIGTERM, terminateProgram );
 	signal( SIGSEGV, terminateProgram );
@@ -359,7 +359,7 @@ int main( int argc, char* argv[] ){
 	int long_index = 0;
 	vector< string > formatdb_opts;
 	formatdb_opts.push_back( "formatdb" );
-	
+
 	string config_f_name = ".ncbirc";
 	bool print_version = false;
 	int nfrags = -1;
@@ -372,7 +372,7 @@ int main( int argc, char* argv[] ){
 	// the full path name of the db to update
 	string update_db;
 	string db_title;
-	
+
 	struct option long_opts[] = {
 		{"config-file", required_argument, &config_opt, 1 },	// this option is obsolete and only remains
 									// to notify users of obsolescence
@@ -406,7 +406,7 @@ int main( int argc, char* argv[] ){
 				if( config_opt == 6 ){
 					print_version = true;
 				}
-				
+
 				if( config_opt == 8 ){
 					debug_msg = true;
 				}
@@ -486,7 +486,7 @@ int main( int argc, char* argv[] ){
 	for( int optI = optind; optI < ac; optI++ ){
 		formatdb_opts.push_back( av[ optI ] );
 	}
-	
+
 	//If we didn't specify either of -N or -S just run standard formatdb
 	if( nfrags <= 0 && frag_size <= 0 ){
 		if( input_filename != "" )
@@ -496,17 +496,17 @@ int main( int argc, char* argv[] ){
 		string formatdb_cl;
 		for( uint optI = 0; optI < formatdb_opts.size(); optI++ )
 			formatdb_cl += formatdb_opts[ optI ] + " ";
-			
+
 		LOG_MSG << "Executing: " << formatdb_cl << endl;
 		// execute formatdb
 		initNCBI( formatdb_opts );
-	
+
 		int retval = Main();
 
 		cleanupNCBI();
 		return retval;
 	}
-	
+
 	if( input_filename != "" && incompatible_option ){
 		cerr << "Error!  The options -a -b -F and -B can't be used when ";
 		cerr << "attempting to format a database with mpiformatdb\n";
@@ -535,7 +535,7 @@ int main( int argc, char* argv[] ){
 		return -1;
 	}
 	localPath = config.localPath();
-	
+
 	// check for valid option combinations
 	if( input_filename == "" ){
 		print_usage( argv[0] );
@@ -548,36 +548,36 @@ int main( int argc, char* argv[] ){
 	if( input_filename == "stdin" )
 		formatted_db = db_title;
 	int high_frag_old = 0;
-	
-	
+
+
 	// make sure the output directory is writable
 	if( !checkDirWritePerms( config.sharedPath() ) ){
 		cerr << "Error: unable to write to shared storage path: " << config.sharedPath() << endl;
 		return -1;
 	}
-	
-	// read in the input file to ascertain the number and lengths of 
+
+	// read in the input file to ascertain the number and lengths of
 	// sequence entries it contains
 	uint64 bases = 0;
 	if( input_filename != "stdin" )
 		bases = indexSeqLengths( input_filename, seq_lengths, nucleotide );
-	bases /= 1000000;	// roughly convert to MB 
-	
+	bases /= 1000000;	// roughly convert to MB
+
 	// if we get here, we will be fragmenting the database.
-	// check that the user specified a fragmentation	
+	// check that the user specified a fragmentation
 	if( nfrags > 0 && frag_size > 0 ){
 		print_usage( argv[0] );
 		cerr << "You may only specify one of --nfrags or --frag-size\n";
 		return -1;
 	}
-	
+
 	// if the number of frags wasn't specified, figure it out using frag size
 	if( nfrags <= 0 ){
 		nfrags = bases / frag_size;
 		if( nfrags == 0 || bases % frag_size != 0 )
 			nfrags++;
-	}	
-		
+	}
+
 	if( input_filename != "stdin" && nfrags > seq_lengths.size() ){
 		cerr << "WARNING: The database contains only " << seq_lengths.size() << " sequence entries ";
 		cerr << "and can't be broken into " << nfrags << " fragments.  Some fragments will ";
@@ -612,7 +612,7 @@ int main( int argc, char* argv[] ){
 	}
 	// add the input db file to the formatdb command line
 	addOpt( formatdb_opts, 'i', db_input_fname.c_str() );
-	
+
 	// check whether the user specified a database type
 	if( blast_type == "" ){
 		if( nucleotide ){
@@ -630,7 +630,7 @@ int main( int argc, char* argv[] ){
 		else if( blast_type == "n" && !nucleotide )
 			cerr << "WARNING: Nucleotide database type specified, but the database appears to contain amino acids!\n";
 	}
-	
+
 /*
  * Here we do checks for updating a database, then read in the necessary info regarding the old one.
  * Next we make sure we're working with the same type of db (nucleotide or protein)
@@ -648,7 +648,7 @@ int main( int argc, char* argv[] ){
 	ostringstream oss;
 	oss << nfrags;
 	formatdb_opts.push_back( oss.str().c_str() );
-	
+
 	// specify the output location for the database with -n
 	string base_name;
 	if(use_basename) {
@@ -658,21 +658,21 @@ int main( int argc, char* argv[] ){
 	} else {
         base_name = input_filename;
     }
-	
+
 	// force index construction with -o T
 	if( !user_indexing_override ){
 		formatdb_opts.push_back( "-o" );
 		formatdb_opts.push_back( "T" );
 	}
 
-	cout << "Breaking " << formatted_db << " into " << nfrags << 
+	cout << "Breaking " << formatted_db << " into " << nfrags <<
 		" fragments\n";
-	
+
 	string formatdb_cl;
 	for( uint optI = 0; optI < formatdb_opts.size(); optI++ )
 		formatdb_cl += formatdb_opts[ optI ] + " ";
 	LOG_MSG << "Executing: " << formatdb_cl << endl;
-	
+
 	//
 	// remove previously created databases with the same name
 	//
@@ -702,7 +702,7 @@ int main( int argc, char* argv[] ){
 
 	// execute formatdb
 	initNCBI( formatdb_opts );
-	
+
 	int retval = Main();
 
 	cleanupNCBI();
@@ -717,7 +717,7 @@ int main( int argc, char* argv[] ){
 
 	if( retval != 0 ){
 		cerr << "There was an error executing formatdb.  Check formatdb.log\n";
-		
+
 		// Only return error values <= 0 (since this program now returns the number of
 		// fragments actually created).
 		return retval > 0 ? -retval : retval;
@@ -725,7 +725,7 @@ int main( int argc, char* argv[] ){
 
 	// if formatdb exited cleanly then the requested number of fragments were created
 	cout << "Created " << nfrags << " fragments.\n";
-	
+
 	// ensure that files with all 7 fragment extensions were created
 	for( int fragI = 0; fragI < nfrags; fragI++ ){
 		char number[4];
@@ -779,7 +779,7 @@ int main( int argc, char* argv[] ){
 		modifyAliasFile( al_orig, high_frag_old, (nfrags + high_frag_old) );
 
 	}
-	
+
 	// Create .mbf file in SharedStorage for --copy-via=none
 	string mbf_file;
     if(use_basename) {
@@ -789,7 +789,7 @@ int main( int argc, char* argv[] ){
     }
 	if (update_db.size() > 0)  //If we're updating, use the old db name. else remove the file
 		mbf_file = update_db + ".mbf";
-	else 
+	else
 		remove(mbf_file.c_str());
 	//Now open up the output stream and write to it. high_frag_old == 0 if ! updating
 	ofstream mbf_out(mbf_file.c_str(),ios::app);
@@ -799,7 +799,7 @@ int main( int argc, char* argv[] ){
 		mbf_out << fragid ;
 	}
 	mbf_out.close();
-	
+
 	if(create_dbs) {
 		string dbs_file;
         if(use_basename) {
@@ -818,7 +818,7 @@ int main( int argc, char* argv[] ){
 	}
 
 	cout << "<<< Please make sure the formatted database fragments are placed in " << config.sharedPath() << " before executing mpiblast. >>> \n" << endl;
-			
+
 	return 0;
 }
 
