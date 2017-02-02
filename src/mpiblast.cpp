@@ -6,18 +6,18 @@
 ** following terms and conditions before using this software. Your use
 ** of this Software indicates your acceptance of this license agreement
 ** and all terms and conditions.
-** 
+**
 ** The parallel input/output (PIO) portion of this work was based in
 ** part on published research that was supported by the North Carolina
 ** State University and Oak Ridge National Laboratory. The actual
 ** implementation was completed at Virginia Tech in the summer of 2007.
-** 
+**
 ** Additionally, portions of this work are derivative works of the NCBI
 ** C Toolkit. Although, the NCBI C Toolkit is released freely without
 ** restriction under the terms of their license, the following files
 ** listed below, have been modified by Virginia Tech, and as such are
 ** redistributed under the terms of this license.
-** 
+**
 ** ncbi/api/txalign.c
 ** ncbi/corelib/ncbifile.c
 ** ncbi/object/objalign.c
@@ -29,20 +29,20 @@
 ** ncbi/tools/ncbisam.c
 ** ncbi/tools/readdb.c
 ** ncbi/tools/readdb.h
-** 
+**
 ** License:
-** 
+**
 ** This file is part of mpiBLAST.
-** 
-** mpiBLAST is free software: you can redistribute it and/or modify it 
-** under the terms of the GNU General Public License version 2 as published 
-** by the Free Software Foundation. 
-** 
+**
+** mpiBLAST is free software: you can redistribute it and/or modify it
+** under the terms of the GNU General Public License version 2 as published
+** by the Free Software Foundation.
+**
 ** Accordingly, mpiBLAST is distributed in the hope that it will be
 ** useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 ** of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ** General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU General Public License
 ** along with mpiBLAST. If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
@@ -120,17 +120,17 @@ int main( int argc, char* argv[] )
 		cerr<<"Error calling init_intercept_lib()";
 		exit(1);
 	}
-	
+
 	// DEBUG --  Electric fence global variables
 	//EF_ALLOW_MALLOC_0 = 1;
 	//EF_PROTECT_BELOW = 1;
-	
+
 	// Perform a quick version check (and exit the program if
 	// the version flag is found). If we don't check now, there's no way for
 	// the user to query the version with out having mpi up and running.
 	for(int i = 1;i < argc;i++){
 		if(strcmp(argv[i], "--version") == 0){
-			cerr << argv[0] << " version " 
+			cerr << argv[0] << " version "
 			     << VERSION << endl;
 			exit(1);
 		}
@@ -147,11 +147,11 @@ int main( int argc, char* argv[] )
 	double realstarttime = clock();
 
 	/* Start up MPI */
-	
+
 	// Original version (no MPI thread support)
 	MPI_Init(&argc, &argv);
-	
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &node_count);
 
 	super_master_process = node_count - 1;
@@ -174,14 +174,14 @@ int main( int argc, char* argv[] )
 	}
 	// set an error handler that won't abort
 	// MPI_Errhandler_set( MPI_COMM_WORLD, MPI_ERRORS_RETURN );
-	
+
 	prog_start = MPI_Wtime();
 	double progstarttime = clock();
 
 	log_stream = &cerr;
 	mpiblast_ptr = new MpiBlast();
-	
-	if(node_count < 2){ 
+
+	if(node_count < 2){
 		//sorry, we need at least 2 processes.
 		terminateProgram(0);
 	}
@@ -194,14 +194,14 @@ int main( int argc, char* argv[] )
 	// register an exit function to abort MPI if blast exits
 	// without an error code
 	atexit( &exitCleanly );
-	
+
 	// mpiblast_ptr = &mpb;
-	
+
 	// int retcode = mpb.main( argc, argv );
 	int retcode = mpiblast_ptr->main( argc, argv );
-	
+
 	if( debug_msg ){
-		LOG_MSG << "rank " << rank << " exiting successfully\n";
+		LOG_MSG << "rank " << my_rank << " exiting successfully\n";
 		LOG_MSG << "MPI startup  time is " << (double)((progstarttime - realstarttime)/CLOCKS_PER_SEC) << endl;
 		LOG_MSG << "Copy time: " << copy_time << endl;
 		LOG_MSG << "Search time: " << search_time << endl;
@@ -210,13 +210,13 @@ int main( int argc, char* argv[] )
 		LOG_MSG << "Run blast time: " << run_blast_time << endl;
 		LOG_MSG << "Results gathering time: " << results_gather_time << endl;
 	}
-	
+
 	// mpiblast_ptr = NULL;
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	profile_time = MPI_Wtime() - profile_time;
-	
-	if(rank == super_master_process) {
+
+	if(my_rank == super_master_process) {
 		cerr<<"Total Execution Time: "<<profile_time<<endl;
 	}
 
@@ -230,9 +230,9 @@ int main( int argc, char* argv[] )
 	} catch(exception& e) {
 		cerr << "Fatal exeption!" << endl;
 	}
-	
+
 	MPI_Finalize();
-	
+
 	fin_intercept_lib();
 
 	return retcode;
@@ -249,7 +249,7 @@ void deleteRegisteredFiles() {
 	del_files.clear();	// clear the deleted files from the list
 }
 
-/** 
+/**
  * This function is registered with atexit() to run before mpiBLAST terminates.
  * It deletes files that need to be deleted and calls terminateProgram() if
  * the NCBI library tried to abort execution
@@ -262,15 +262,15 @@ void exitCleanly(){
 }
 
 /**
- * Aborts the mpiBLAST program using MPI_Abort()  On unix this function gets 
+ * Aborts the mpiBLAST program using MPI_Abort()  On unix this function gets
  * registered to handle interrupt, terminate, and segfault signals.
  * @param sig	A unix signal to die with.  Special case is 0, indicating that mpiblast is being run with too few processes.
  */
 void terminateProgram( int sig ){
-	if(sig==0) 
+	if(sig==0)
 		cerr << "Sorry, mpiBLAST must be run on 3 or more nodes\n";
 	else {
-		cerr << rank << "\t" << (MPI_Wtime()-prog_start) 
+		cerr << my_rank << "\t" << (MPI_Wtime()-prog_start)
 		     << "\tBailing out with signal "<< sig << endl;
 		if( mpiblast_ptr != NULL )
 			if( mpiblast_ptr->remove_db ){
@@ -289,7 +289,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 	double max_result_time = 0;
 	double min_result_time = FLT_MAX;
 	double avg_result_time = 0;
-	
+
 	double max_process_output_time = 0;
 	double min_process_output_time = FLT_MAX;
 	double avg_process_output_time = 0;
@@ -309,7 +309,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 	double max_wait_result_time = 0;
 	double min_wait_result_time = FLT_MAX;
 	double avg_wait_result_time = 0;
-	
+
 	double max_receive_message_time = 0;
 	double min_receive_message_time = FLT_MAX;
 	double avg_receive_message_time = 0;
@@ -318,12 +318,12 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 	int min_peak_pending_offsets = INT_MAX;
 	int avg_peak_pending_offsets = 0;
 
-	if(group_rank == scheduler_process && rank != super_master_process) {
+	if(group_rank == scheduler_process && my_rank != super_master_process) {
 		// receive profiling data from writer master
 		MPI_Status probe_status, status;
 
 		if(scheduler_process != writer_process) {
-			MPI_Probe(writer_process, PROFILE_TAG, group_comm, &probe_status);		
+			MPI_Probe(writer_process, PROFILE_TAG, group_comm, &probe_status);
 			int msg_size;
 			MPI_Get_count(&probe_status, MPI_BYTE, &msg_size);
 			char* recv_buf = (char*)malloc(msg_size+1);
@@ -363,7 +363,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 			}
 
 			MPI_Status probe_status, status;
-			MPI_Probe(workerI, PROFILE_TAG, group_comm, &probe_status);		
+			MPI_Probe(workerI, PROFILE_TAG, group_comm, &probe_status);
 			int msg_size;
 			MPI_Get_count(&probe_status, MPI_BYTE, &msg_size);
 			char* recv_buf = (char*)malloc(msg_size+1);
@@ -496,7 +496,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		avg_receive_message_time = avg_receive_message_time / receive_message_time_vec.size();
 		avg_peak_pending_offsets = avg_peak_pending_offsets / peak_pending_offsets_vec.size();
 
-		int group_id = GroupManager::Instance()->GetGroupId(rank);
+		int group_id = GroupManager::Instance()->GetGroupId(my_rank);
 		ostringstream os;
 		os << file_name << "." << group_id;
 		ofstream ofs(os.str().c_str());
@@ -561,7 +561,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		ofs << "avg peak pending offsets: " << avg_peak_pending_offsets << endl;
 		ofs.close();
 
-	} else if (group_rank == writer_process && rank != super_master_process) { 
+	} else if (group_rank == writer_process && my_rank != super_master_process) {
 		ostringstream os_send;
 		os_send << output_info_time << " ";
 		os_send << writer_master_idle_time << " ";
@@ -570,10 +570,10 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		os_send << receive_msg_time << " ";
 		os_send << receive_msg_size << " ";
 		os_send << max_num_write << " ";
-		
+
 		string send_buf = os_send.str();
-		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, scheduler_process, PROFILE_TAG, group_comm);		
-	} else if (rank != super_master_process) {
+		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, scheduler_process, PROFILE_TAG, group_comm);
+	} else if (my_rank != super_master_process) {
 		ostringstream os_send;
 
 		os_send << copy_time << " ";
@@ -590,11 +590,11 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		os_send << peak_pending_offsets << " ";
 
 		string send_buf = os_send.str();
-		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, scheduler_process, PROFILE_TAG, group_comm);		
+		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, scheduler_process, PROFILE_TAG, group_comm);
 	}
 
 	// collect statistics from groups
-	if(rank == super_master_process) {
+	if(my_rank == super_master_process) {
 
 		int num_groups = GroupManager::Instance()->GetNumGroups();
 
@@ -617,10 +617,10 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		vector <double> max_write_time_vec(num_groups, 0);
 		vector <double> min_write_time_vec(num_groups, 0);
 		vector <double> avg_write_time_vec(num_groups, 0);
-		
+
 		MPI_Status probe_status, status;
 		for(int i=0; i<num_groups; i++) {
-			MPI_Probe(MPI_ANY_SOURCE, PROFILE_TAG, MPI_COMM_WORLD, &probe_status);		
+			MPI_Probe(MPI_ANY_SOURCE, PROFILE_TAG, MPI_COMM_WORLD, &probe_status);
 			int msg_size;
 			MPI_Get_count(&probe_status, MPI_BYTE, &msg_size);
 			char* recv_buf = (char*)malloc(msg_size+1);
@@ -721,7 +721,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 				<< min_write_time_vec[group_id] << ", "
 				<< avg_write_time_vec[group_id] << endl;
 		}
-		
+
 		ofs << "system initialization time: " << system_init_time << endl;
 		ofs << "global query broadcast time: " << query_broadcast_time << endl;
 		ofs << "db pre-distribution time: " << db_distribute_time << endl;
@@ -732,7 +732,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 	} else if (group_rank == 0) {
 
 		ostringstream os_send;
-		int group_id = GroupManager::Instance()->GetGroupId(rank);
+		int group_id = GroupManager::Instance()->GetGroupId(my_rank);
 
 		os_send << group_id << " ";
 
@@ -742,7 +742,7 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		os_send << load_queries_time << " ";
 		os_send << writer_master_handle_time << " ";
 		os_send << write_time << " "; // master write time
-		
+
 		os_send << max_search_time << " ";
 		os_send << min_search_time << " ";
 		os_send << avg_search_time << " ";
@@ -755,15 +755,15 @@ void CollectSearchProfile(const string& file_name, double total_time) {
 		os_send << max_write_time << " ";
 		os_send << min_write_time << " ";
 		os_send << avg_write_time << " ";
-		
+
 		string send_buf = os_send.str();
-		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, super_master_process, PROFILE_TAG, MPI_COMM_WORLD);		
+		MPI_Send((void*)(send_buf.c_str()), send_buf.length(), MPI_BYTE, super_master_process, PROFILE_TAG, MPI_COMM_WORLD);
 	}
 }
 
-MpiBlast::~MpiBlast(){ 
+MpiBlast::~MpiBlast(){
 	log_stream = &cerr;
-	if(myscheduler!=NULL) delete myscheduler; 
+	if(myscheduler!=NULL) delete myscheduler;
 	if(writer_m!=NULL) delete writer_m;
 	if(writer_w!=NULL) delete writer_w;
 	if(ncbiblast!=NULL) delete ncbiblast;
@@ -782,7 +782,7 @@ void BreakUpResults( vector< pair< int, SeqAlignPtr > >& results_vec, SeqAlignPt
 	//	cerr << cur_count << "\t" << "cur_a: " << cur_a << endl;
 	while( cur_a->next != NULL ){
 		//		cerr << cur_count << "\t" << "cur_a: " << cur_a->next << endl;
-		SeqIdPtr cur_id = TxGetSubjectIdFromSeqAlign( cur_a ); 
+		SeqIdPtr cur_id = TxGetSubjectIdFromSeqAlign( cur_a );
 		SeqIdPtr next_id = TxGetSubjectIdFromSeqAlign( cur_a->next );
 		if( SeqIdComp( cur_id, next_id ) != SIC_YES ){
 			// break the chain at cur_a, add cur_a->next
@@ -804,7 +804,7 @@ void BreakUpResults( vector< pair< int, SeqAlignPtr > >& results_vec, SeqAlignPt
 /**
  * Mergesorts new results with existing results for a single query
  */
-void mergeSeqAlignResults( const vector< pair< int, SeqAlignPtr > >& results, const vector< pair< int, SeqAlignPtr > >& new_results, 
+void mergeSeqAlignResults( const vector< pair< int, SeqAlignPtr > >& results, const vector< pair< int, SeqAlignPtr > >& new_results,
 			  vector< pair< int, SeqAlignPtr > >& merged_results ){
 	uint resultI = 0;
 	uint resultJ = 0;
@@ -848,7 +848,7 @@ void mergeResults( map< int, vector< pair< int, SeqAlignPtr > > >& query_map, ve
 		BreakUpResults( cur_results, new_results[ resultI ], searched_frag_id );
 
 		map< int, vector< pair< int, SeqAlignPtr > > >::iterator query_iter = query_map.find( query_id );
-		
+
 		if( query_iter == query_map.end() ){
 			// no results for this query yet.  add it.
 			query_map.insert( map< int, vector< pair< int, SeqAlignPtr > > >::value_type( query_id, cur_results ) );
@@ -886,7 +886,7 @@ bool MpiBlast::sendFragsViaMPI(int fragment_id, int worker_id){
 			copy_files.push_back( copy_src );
 		}
 	}
-	
+
 	// tell the worker how many files it's getting
 	int file_count = copy_files.size();
 	MPI_Send( &file_count, 1, MPI_INT, worker_id, DB_DATATOSEND_TAG, MPI_COMM_WORLD );
@@ -928,7 +928,7 @@ bool MpiBlast::recvFragsViaMPI( int fragment_id ){
 	MPI_Recv( &file_count, 1, MPI_INT, super_master_process, DB_DATATOSEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
 	if( debug_msg )	LOG_MSG << "Got frag file count " << file_count << " from rank 0\n";
-	
+
 	for( uint fileI = 0; fileI < file_count; fileI++ ){
 		char ext[5];
 		MPI_Recv( ext, 5, MPI_CHAR, super_master_process, DB_EXTENSION_DATA_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
@@ -945,14 +945,14 @@ bool MpiBlast::recvFragsViaMPI( int fragment_id ){
 void MpiBlast::super_master() {
 	// scheduling query segments to different groups
 	// limit the concurrent copy activity
-	
+
 	// while loop waiting for query segment request
 	// distribute query batch in form of <start_query, end_query>, where queries in range [start_query, end_query-1] will be searched
 	int curr_query_id = 0;
 	int curr_segment_id = 0;
 	int complete_groups = 0;
 	int event_array[2];
-	
+
 	queue< int > db_access_queue; // JA DB access queue of workers waiting to access the database
 
 	int num_copying_db = 0;
@@ -970,7 +970,7 @@ void MpiBlast::super_master() {
 	while(true) {
 
 		ism.CheckPendingSends();
-		
+
 		MPI_Status probe_status, status;
 
 		MPI_Probe( MPI_ANY_SOURCE, EVENT_TYPE, MPI_COMM_WORLD, &probe_status );
@@ -993,7 +993,7 @@ void MpiBlast::super_master() {
 
 				int end_query = 0;
 				int curr_assign = query_segment_size;
-				
+
 				end_query = curr_query_id + curr_assign;
 				if(end_query > query_count) {
 					end_query = query_count;
@@ -1003,7 +1003,7 @@ void MpiBlast::super_master() {
 				if(assign_array[3] - assign_array[2] <= 0) {
 					throw __FILE__ " Empty assignment!";
 				}
-				
+
 				curr_query_id = end_query;
 				curr_segment_id++;
 			} else {
@@ -1020,10 +1020,10 @@ void MpiBlast::super_master() {
 				if(assign_array[0] != NO_MORE_SEGMENT) {
 					LOG_MSG << "Give " << probe_status.MPI_SOURCE << " segment " << assign_array[1] << ", start_query " << assign_array[2] << ", end_query " << assign_array[3] << endl;
 				} else {
-					LOG_MSG << "No more query segments to assign" << endl;	
+					LOG_MSG << "No more query segments to assign" << endl;
 				}
 			}
-			
+
 		} else if (event_array[0] == GROUP_FINISHED) {
 			if(++complete_groups == num_groups) {
 				break;
@@ -1057,7 +1057,7 @@ void MpiBlast::super_master() {
 				}
 
 				int worker_to_copy = db_access_queue.front();
-				
+
 				int copy_command = CONFIRM_COPY_FRAGMENT;
 				MPI_Send(&copy_command, 1, MPI_INT, worker_to_copy, ASSIGNMENT_TYPE, MPI_COMM_WORLD);
 
@@ -1077,7 +1077,7 @@ void MpiBlast::master() {
 
 	// set up the first assignment
 	int num_first_assign = CalculateFirstAssignment();
-	int group_id = GroupManager::Instance()->GetGroupId(rank);
+	int group_id = GroupManager::Instance()->GetGroupId(my_rank);
 	int start_query = num_first_assign * group_id;
 	int end_query = num_first_assign * (group_id + 1);
 	if(end_query > query_count) {
@@ -1091,7 +1091,7 @@ void MpiBlast::master() {
 	ncbiblast->Init(MASTER_MODE);
 	running_blast = false;
 
-	double load_time = MPI_Wtime();	
+	double load_time = MPI_Wtime();
 
 	if(query_in_mem) {
 		QueryM::Instance()->ParseQuerydata();
@@ -1110,7 +1110,7 @@ void MpiBlast::master() {
 		writer_m = WriterMasterStreamline::Instance(ncbiblast, query_count, total_frags, output_filename, 1);
 	} else if (output_strategy == WORKER_COLLECTIVE) {
 		writer_m = WriterMasterCollective::Instance(ncbiblast, query_count, total_frags, output_filename, 1);
-	} 
+	}
 
 	myscheduler->SetWriterMaster(writer_m);
 	myscheduler->AddAssignment(group_id, start_query, end_query);
@@ -1134,14 +1134,14 @@ void MpiBlast::master() {
 		CommRecvStruct* crsp = new CommRecvStruct(2 * int_size);
 		crsp->IrecvData(group_comm, MPI_ANY_SOURCE, EVENT_TYPE);
 		_irm->AddPendingRecv(crsp);
-	}	
-	
+	}
+
 	int scheduler_tags = SCHEDULER_TAGS;
 	int writer_tags = WRITER_TAGS;
 
 	bool scheduler_end = false;
 	bool writer_end = false;
-	static double handle_track_time = 0; 
+	static double handle_track_time = 0;
 
     int pool_count = 0;
 	while( true ){
@@ -1193,7 +1193,7 @@ void MpiBlast::master() {
 			scheduler_handle_time += MPI_Wtime() - handle_track_time;
 		} else if ( recv_status.MPI_TAG & writer_tags ) {
 			handle_track_time = MPI_Wtime();
-			if(writer_m->HandleMessages(crsp_finish, recv_status)) {  
+			if(writer_m->HandleMessages(crsp_finish, recv_status)) {
 				writer_end = true;
 			}
 
@@ -1203,7 +1203,7 @@ void MpiBlast::master() {
 			LOG_MSG << "Error: Received msg " << recv_status.MPI_TAG << " from " << recv_status.MPI_SOURCE << endl;
 			throw __FILE__ "master(): Illegal message in main loop!";
 		}
-		
+
 	} // end while (true)
 
 	writer_m->Finalize();
@@ -1212,7 +1212,7 @@ void MpiBlast::master() {
 	// tell super master we finished
 	int event_array[2];
 	memset(event_array, 0 , 2);
-	event_array[0] = GROUP_FINISHED;	
+	event_array[0] = GROUP_FINISHED;
 	event_array[1] = -1;
 	MPI_Send(event_array, 2, MPI_INT, super_master_process, EVENT_TYPE, MPI_COMM_WORLD);
 
@@ -1224,20 +1224,20 @@ void MpiBlast::master() {
 }
 
 void MpiBlast::worker(){
-	
+
 	double track_time;
-	
+
 	meta_MPE_Log_event(worker_file_setup_start, 0,"setting up worker files");
 	//
 	// create blast alias file
-	//    
+	//
 	string alias_basename = config.localPath() + database_name + "XXXXXX";
 	string alias_filename;
 
 	if(!use_virtual_frags) {
 		getTempFileName( alias_basename );
 		alias_filename = alias_basename + "." + db_type + "al";
-		
+
 		// do we really need this?
 		moveFile( alias_basename, alias_filename );
 		// be sure the alias file gets deleted before exiting
@@ -1245,7 +1245,7 @@ void MpiBlast::worker(){
 	}
 
 	stringstream rank_str;
-	rank_str << rank;
+	rank_str << my_rank;
 
 	meta_MPE_Log_event(worker_file_setup_end, 0,"done setting up worker files");
 
@@ -1277,17 +1277,17 @@ void MpiBlast::worker(){
 	running_blast = true;
 	ncbiblast->InitNCBI( worker_opts );
 	running_blast = false;
-		
+
 	meta_MPE_Log_event(init_ncbi_end, 0,"end initNCBI()");
-	
+
 	// construct writer
 	// init blast to get the max show size
 	ncbiblast->Init(WORKER_MODE);
-	
+
 	if(query_in_mem) {
 		QueryM::Instance()->ParseQuerydata();
 		VFM::Instance()->Erase(query_filename);
-	} 
+	}
 
 	if(output_strategy == WORKER_INDIVIDUAL || output_strategy == WORKER_SPLIT) {
 		writer_w = WriterWorkerIndividual::Instance(ncbiblast, query_count, total_frags, output_filename, 1);
@@ -1298,22 +1298,22 @@ void MpiBlast::worker(){
 	}
 
 	ncbiblast->Cleanup();
-	
+
 	MPI_Status status;
-	
+
 	// These variables manage the database fragment list (for sending, receiving and writing
 	// to disk).
 	vector<int> fragment_list;
 	int frag_id;	/**< The fragment currently being searched */
-	
+
 	// construct the fragment list file name
-	string fragment_filename = config.localPath() + database_name + FRAG_LIST_EXTENSION;	
+	string fragment_filename = config.localPath() + database_name + FRAG_LIST_EXTENSION;
 
 	int query_id;	/**< The query that is currently being worked on */
 	int segment_id;
 
 	//
-	// tell the scheduler node what fragments this node has	
+	// tell the scheduler node what fragments this node has
 	//
 	meta_MPE_Log_event(send_frag_list_start, 0,"begin send frag list to scheduler");
 
@@ -1325,7 +1325,7 @@ void MpiBlast::worker(){
 	//frag_list_file.setTimestamps( all_dates, total_datelen );
 	frag_list_file.setTimestamps( ncbiblast->GetAllDates(), ncbiblast->GetTotalDateLen() );
 	frag_list_file.checkTimestamps();
-	frag_list_file.SendList( scheduler_process );		
+	frag_list_file.SendList( scheduler_process );
 	if( debug_msg ){
 		LOG_MSG << "Fragment list sent." << endl;
 	}
@@ -1334,7 +1334,7 @@ void MpiBlast::worker(){
 	// loop until the assignment is SEARCH_COMPLETE or WORKER_QUIT
 	int* assign_array = NULL;	/**< will store the assignment */
 	int event_array[2];
-	
+
 	bool send_idle_message = true;
 	bool pending_idle_messag = false;
 
@@ -1355,7 +1355,7 @@ void MpiBlast::worker(){
 			writer_w->AddCommSend(cssp_event);
 
 			int idle_msg = WORKER_IDLE;
-			
+
 			CommSendStruct* cssp_data = new CommSendStruct(int_size);
 			cssp_data->AddData(&idle_msg, int_size);
 			cssp_data->IsendData(group_comm, scheduler_process, WORKER_IDLE);
@@ -1383,7 +1383,7 @@ void MpiBlast::worker(){
 		while (!flag) {
 			MPI_Iprobe( MPI_ANY_SOURCE, ASSIGNMENT_TYPE, group_comm, &flag, &status );
 			//pool_count++;
-			
+
 			writer_w->CheckCommSends();
 			writer_w->CheckResultSends();
 			if(output_strategy == MASTER_STREAMLINE || output_strategy == WORKER_STREAMLINE) {
@@ -1395,7 +1395,7 @@ void MpiBlast::worker(){
 				pool_count = 0;
 			}*/
 		}
-		
+
 		idle_time += MPI_Wtime() - idle_track_time;
 		if(output_strategy == MASTER_STREAMLINE || output_strategy == WORKER_STREAMLINE) {
 			writer_w->ProcessAsyncOutput();
@@ -1406,7 +1406,7 @@ void MpiBlast::worker(){
 		MPI_Get_count( &status, MPI_INT, &array_size );
 		assign_array = (int*)malloc(int_size*array_size);
 		CHECK_NULPTR(assign_array);
-		
+
 		MPI_Status recv_status;
 		MPI_Recv( assign_array, array_size, MPI_INT, status.MPI_SOURCE, ASSIGNMENT_TYPE, group_comm, &recv_status );
 
@@ -1426,7 +1426,7 @@ void MpiBlast::worker(){
 		if( assign_array[0] == SEARCH_COMPLETE ) {
 			free(assign_array);
 			assign_array = NULL;
-			break;	
+			break;
 		}
 
 		send_idle_message = true;
@@ -1435,7 +1435,7 @@ void MpiBlast::worker(){
 			double handle_time = MPI_Wtime();
 			writer_w->HandleMessages(status, &(assign_array[1]));
 			writer_worker_handle_time += MPI_Wtime() - handle_time;
-			
+
 			if(!pending_idle_messag && (writer_w->GetNumPendingOffsets() < max_pending_offsets)) {
 				send_idle_message = true;
 				if(debug_msg) {
@@ -1455,11 +1455,11 @@ void MpiBlast::worker(){
 
 				// JA -- If assignment is SEARCH_FRAGMENT, worker will immediately receive these messages
 				//       If assignment is COPY_FRAGMENT, worker is put in queue and will receive messages when at front of queue
-			
+
 				if( assign_array[0] == COPY_FRAGMENT ) {
 
 					track_time = MPI_Wtime();
-					
+
 					// first check whether another worker has already copied this
 					// fragment to the local storage directory
 					// note that the scheduler mustn't allow two workers to copy
@@ -1474,12 +1474,12 @@ void MpiBlast::worker(){
 					frag_list_file.setTimestamps( ncbiblast->GetAllDates(), ncbiblast->GetTotalDateLen() );
 					frag_list_file.checkTimestamps();
 					if( !frag_list_file.contains( frag_id ) ) {
-						// copy the database fragments 
+						// copy the database fragments
 						// .nhr, .nin, .nsq, .nnd, .nni, .nsd, .nsi for nucleotide
 						// .phr, .pin, .psq, .pnd, .pni, .psd, .psi for amino acids
 						bool copy_success = true;
 						const vector<string>& extensions = FragmentExtensions(db_type);
-					
+
 						char fragid[8];
 						memset( fragid, 0, 8 );
 						// always support 3 digit fragment identifiers
@@ -1504,7 +1504,7 @@ void MpiBlast::worker(){
 								throw __FILE__ "message out of order while waiting for copy command";
 							}
 	*/
-							
+
 							for( uint extI = 0; extI < extensions.size(); extI++ ){
 								string copy_fragment_name = database_name + ".";
 								copy_fragment_name += fragid + extensions[ extI ];
@@ -1523,20 +1523,20 @@ void MpiBlast::worker(){
 							}
 						} else { // copy via mpi
 							copy_success = recvFragsViaMPI( frag_id );
-						}	
+						}
 						meta_MPE_Log_event(cpend,0,"end copy");
 
 						if( copy_success ){
 							frag_list_file.addFragment( frag_id );
 						}
 						else{
-							LOG_MSG << "(" << rank << ") unable to copy fragment!" << endl;
+							LOG_MSG << "(" << my_rank << ") unable to copy fragment!" << endl;
 							MPI_Abort( MPI_COMM_WORLD, -1 );
 						}
 					}	// end "if( !fragment_list_file.contains( frag_id ) )"
 
 					copy_time += MPI_Wtime() - track_time;
-					
+
 					//
 					// Tell the scheduler that the fragment copy completed successfully
 					//
@@ -1547,7 +1547,7 @@ void MpiBlast::worker(){
 					cssp_event->AddData(&event_array[0], 2 * int_size);
 					cssp_event->IsendData(group_comm, scheduler_process, EVENT_TYPE);
 					writer_w->AddCommSend(cssp_event);
-					
+
 					CommSendStruct* cssp_data = new CommSendStruct(int_size);
 					cssp_data->AddData(&frag_id, int_size);
 					cssp_data->IsendData(group_comm, scheduler_process, FRAGMENT_COPY_COMPLETE);
@@ -1558,14 +1558,14 @@ void MpiBlast::worker(){
 					cssp_event1->AddData(&event_array[0], 2 * int_size);
 					cssp_event1->IsendData(MPI_COMM_WORLD, super_master_process, EVENT_TYPE);
 					writer_w->AddCommSend(cssp_event1);
-					
+
 					free(assign_array);
 					continue;
 				} // end "if (assignment == COPY_FRAGMENT)"
 
 				// Assignment is SEARCH_FRAGMENT
 				// fill alias file with the names of fragments to search.
-				//    
+				//
 				if( debug_msg )
 					LOG_MSG << "Searching query " << assign_array[3] << " vs frag " << assign_array[2] << endl;
 
@@ -1578,14 +1578,14 @@ void MpiBlast::worker(){
 					query_buf[query_len] = NULLB;
 					QueryM::Instance()->AddQueryData(query_id, query_buf);
 				}
-				
+
 				// writer_w->AddWorkingQueries(segment_id, query_id, query_id + 1);
 				writer_w->InitQueryOutput(segment_id, query_id);
 
 				if(!preload_query) {
 					QueryM::Instance()->UnloadOldQueries(query_id);
 				}
-				
+
 				string frag_to_search;
 				if(use_virtual_frags) {
 					ostringstream tmp_os;
@@ -1597,7 +1597,7 @@ void MpiBlast::worker(){
 					vector<int> single_frag_vector(1, frag_id);
 					WriteAliasFile(alias_filename, single_frag_vector);
 				}
-			
+
 				//
 				// initialize BLAST with the current data set
 				//
@@ -1610,16 +1610,16 @@ void MpiBlast::worker(){
 					LOG_MSG << "initBLAST() end" << endl;
 				}
 				running_blast = false;
-				
+
 				if(use_virtual_frags) {
 					updateBlastDB(frag_to_search.c_str(), frag_to_search.size());
 				}
-				
+
 				//
 				// execute blast
 				//
 				if( debug_msg ){
-					LOG_MSG << "node " << rank << " Executing BLAST search\n";
+					LOG_MSG << "node " << my_rank << " Executing BLAST search\n";
 				}
 				meta_MPE_Log_event(blaststart,0,"start blastall");
 				running_blast = true;
@@ -1631,7 +1631,7 @@ void MpiBlast::worker(){
 				int retcode = ncbiblast->RunPIO( SEARCH_MODE, query_id, query_id, frag_id );
 
 				run_blast_time += MPI_Wtime() - track_time;
-				
+
 				running_blast = false;
 				meta_MPE_Log_event(blastend,0,"end blastall");
 				if( retcode != 0 ){
@@ -1646,11 +1646,11 @@ void MpiBlast::worker(){
 				meta_MPE_Log_event(cleanup_blast_end,0,"cleanupBLAST() end");
 
 				if( debug_msg ){
-					LOG_MSG << "node " << rank << " blast retcode= " << retcode << endl;
+					LOG_MSG << "node " << my_rank << " blast retcode= " << retcode << endl;
 				}
-				
+
 				writer_w->ProcessResults(true, frag_id);
-		
+
 				if(writer_w->GetNumPendingOffsets() >= max_pending_offsets) {
 					send_idle_message = false;
 					if(debug_msg) {
@@ -1712,7 +1712,7 @@ void MpiBlast::worker(){
             }
 
             if(debug_msg) {
-                LOG_MSG << "Warning: received assignment " << assign_array[0] << endl; 
+                LOG_MSG << "Warning: received assignment " << assign_array[0] << endl;
             }
             free(assign_array);
         }
@@ -1727,7 +1727,7 @@ void MpiBlast::worker(){
             pool_count = 0;
 		}*/
     }
-	
+
     free(assign_array);
 
     // free query sequence memory
@@ -1745,7 +1745,7 @@ void  MpiBlast::WriteAliasFile( const string& alias_filename, const vector< int 
 		// this isn't an error condition when # workers > # db frags
 //		throw __FILE__ "(WriteAliasFile) Empty fragment_list";
 	}
-	
+
 	ofstream alias_file( alias_filename.c_str() );
 
 	if( !alias_file.is_open() ){
@@ -1755,11 +1755,11 @@ void  MpiBlast::WriteAliasFile( const string& alias_filename, const vector< int 
 
 	alias_file << "TITLE " << config.localPath() << database_name << endl;
 	alias_file << "DBLIST";
-	
+
 	for( uint iter = 0; iter != fragment_list.size(); iter++ ){
 		alias_file << " " << database_name << ".";
 		char fragid[8];
-		
+
 		memset(fragid, 0, 8);
 
 		// always use 3 digit fragment identifiers
@@ -1772,13 +1772,13 @@ void  MpiBlast::WriteAliasFile( const string& alias_filename, const vector< int 
 	}
 	alias_file << endl;
 	alias_file.close();
-		
+
 }
 
 void MpiBlast::DistributeDB() {
-	
+
 	// form distribute communication
-	int color = -1; 
+	int color = -1;
 	if(group_rank == 0) {
 		color = node_count; // make sure it has different color than others
 	} else {
@@ -1787,15 +1787,15 @@ void MpiBlast::DistributeDB() {
 	MPI_Comm distribute_comm;
 	int distribute_rank;
 
-    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &distribute_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, color, my_rank, &distribute_comm);
     MPI_Comm_rank(distribute_comm, &distribute_rank);
 
 	if(group_rank == 0) {   // skip the first rank (supermaster and master)
 		return;
 	}
-	
+
 	if(debug_msg) {
-		LOG_MSG << "rank=" << rank << ", group_rank=" << group_rank << ", distribute_color=" << color << ", distribute_rank=" << distribute_rank << endl;
+		LOG_MSG << "rank=" << my_rank << ", group_rank=" << group_rank << ", distribute_color=" << color << ", distribute_rank=" << distribute_rank << endl;
 	}
 
 	vector <string> local_frags;
@@ -1811,7 +1811,7 @@ void MpiBlast::DistributeDB() {
 	}
 
 	if(debug_msg) {
-		ostringstream tmp_os; 
+		ostringstream tmp_os;
 		copy(local_frags.begin(), local_frags.end(), ostream_iterator<string>(tmp_os, " "));
 		LOG_MSG << "Assigned local frags: " << tmp_os.str() << endl;
 	}
@@ -1828,11 +1828,11 @@ void MpiBlast::DistributeDB() {
 
 			if(distribute_rank == 0) {
 				file_len = statFileSize(shared_file_path.c_str());
-				
+
 				if(debug_msg) {
 					LOG_MSG << "Distributing " << file_name << endl;
 				}
-				
+
 				ifs.open(shared_file_path.c_str());
 				if(!ifs.is_open()) {
 					throw __FILE__ "MpiBlast::DistributeDB() - cannot open input file";
@@ -1863,14 +1863,14 @@ void MpiBlast::DistributeDB() {
 					}
 					ifs.read(ptr, curr_read);
 				}
-					
+
 				MPI_Bcast(&curr_read, 1, MPI_INT, 0, distribute_comm);
 				MPI_Bcast(ptr, curr_read, MPI_BYTE, 0, distribute_comm);
 
 				ptr += curr_read;
 				total_read += curr_read;
 			}
-			
+
 			// if use local storage, dump vitual file into local and delete it
 			if(!use_virtual_frags) {
 				ofstream ofs(local_file_path.c_str());
@@ -1896,26 +1896,26 @@ void MpiBlast::ReadDBSpecs(const string& spec_file) {
 	if(!ifs.is_open()) {
 		throw __FILE__ " MpiBlast::ReadDBSpecs -- error opening of database specification file. Please reformat your database with the updated version of mpiformatdb.";
 	}
-	
+
 	ifs >> global_db_len;
 	ifs >> global_dbseq_num;
 	ifs.close();
-		
+
 	use_real_dblen = true;
-	
+
 	return;
 }
 
 void MpiBlast::CreateGroupComm() {
 	// create group communicators
 	int color = -1;
-	color = ( rank == super_master_process? node_count : GroupManager::Instance()->GetGroupId(rank)); // make sure supermaster has different color
-	MPI_Comm_split(MPI_COMM_WORLD, color, rank, &group_comm);
+	color = ( my_rank == super_master_process? node_count : GroupManager::Instance()->GetGroupId(my_rank)); // make sure supermaster has different color
+	MPI_Comm_split(MPI_COMM_WORLD, color, my_rank, &group_comm);
 	MPI_Comm_rank(group_comm, &group_rank);
 	MPI_Comm_size(group_comm, &group_node_count);
 
 	// initialize write group
-	
+
 	if(scheduler_process == writer_process) {
 		group_write_comm = group_comm;
 	}
@@ -1932,7 +1932,7 @@ void MpiBlast::CreateGroupComm() {
 		replica_group_size = total_frags;
 	}
 
-	// set default replica count 
+	// set default replica count
 	int num_copies = GetNumWorkers() / replica_group_size;
 	int remain = GetNumWorkers() % replica_group_size;
 
@@ -1944,7 +1944,7 @@ void MpiBlast::CreateGroupComm() {
 		num_copies = 1;
 	}
 
-	if(rank != super_master_process) {
+	if(my_rank != super_master_process) {
 		PrecopySchedulerPolicy::db_copy_number = num_copies;
 		if(frags_per_worker > 0) {
 			PrecopySchedulerPolicy::node_copy_number = frags_per_worker;
@@ -1963,9 +1963,9 @@ void MpiBlast::CreateGroupComm() {
 			LOG_MSG << "Number of cached fragments per node: " << PrecopySchedulerPolicy::node_copy_number << endl;
 		}
 	}
-		
+
 	if(debug_msg) {
-		LOG_MSG << "Group Info: rank=" << rank << ", group_id=" << color << ", group_rank=" << group_rank << ", group_node_count=" << group_node_count << endl;
+		LOG_MSG << "Group Info: rank=" << my_rank << ", group_id=" << color << ", group_rank=" << group_rank << ", group_node_count=" << group_node_count << endl;
 	}
 
 	return;
@@ -2044,7 +2044,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 		{"query-load-size", required_argument, &config_opt, 45},
 		{0,0,0,0}	// signifies termination of option list
 	};
-	
+
 	while((opt_code = getopt_long( ac, av, short_opts, long_opts, &long_index ) ) != EOF ){
 		switch( opt_code ){
 			case 0:
@@ -2106,12 +2106,12 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 						lock_set = true;
 						break;
 					case 12:	// --resume-run
-						cerr << "\"--resume-run\" currently not supported!" <<endl; 
+						cerr << "\"--resume-run\" currently not supported!" <<endl;
 						exit(1);
 						//resume_run = true;
 						break;
 					case 13:	// --scheduler-rank
-						// cerr << "\"--scheduler-rank\" currently not supported!" <<endl; 
+						// cerr << "\"--scheduler-rank\" currently not supported!" <<endl;
 						// exit(1);
 						//scheduler_process=atoi(optarg);
 						//writer_process=scheduler_process;
@@ -2124,7 +2124,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 						db_replica_count = atoi(optarg);
 						replica_count_set = true;
 						break;
-					case 16:	
+					case 16:
 						disable_posix_lock = true;
 						break;
 					case 17:
@@ -2246,7 +2246,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 					case 45:
 						max_query_load = atoi(optarg);
 						break;
-				}	
+				}
 				break;
 
 			case 'i':
@@ -2275,7 +2275,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 			case 'O':
 				// Only the master is allowed to see this
 				// flag since workers must use -m 11. Don't let the
-				// -O force ASCII ASN.1 output on the workers! 
+				// -O force ASCII ASN.1 output on the workers!
 				addOpt( writer_opts, opt_code, optarg );
 				break;
 			case 'l':
@@ -2311,7 +2311,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 	}
 
 	if(copy_via == COPY_VIA_MPI && use_virtual_frags) {
-		cerr << "copy-via cannot be mpi if use-virtual-frags is specified" << endl; 
+		cerr << "copy-via cannot be mpi if use-virtual-frags is specified" << endl;
 		exit(-1);
 	}
 
@@ -2343,7 +2343,7 @@ void MpiBlast::ParseArguments (int argc, char* argv[]) {
 #endif
 
 }
-	
+
 int MpiBlast::CalculateFirstAssignment() {
 /*
 	int num_first_assign = 0;
@@ -2392,7 +2392,7 @@ int MpiBlast::main( int argc, char* argv[] )
 	ParseArguments(argc, argv);
 
 	try{
-		if(rank == super_master_process) {
+		if(my_rank == super_master_process) {
 			int buf_len = 0;
 			config = MpiBlastConfig( config_f_name );
 			string local = config.localPath();
@@ -2408,7 +2408,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		} else {
 			int buf_len = 0;
 			char* buf;
-			
+
 			MPI_Bcast( &buf_len, 1, MPI_INT, super_master_process, MPI_COMM_WORLD);
 			buf = new char[buf_len+1];
 			MPI_Bcast( buf, buf_len, MPI_BYTE, super_master_process, MPI_COMM_WORLD);
@@ -2422,10 +2422,10 @@ int MpiBlast::main( int argc, char* argv[] )
 			buf[buf_len] = 0;
 			string shared = buf;
 			delete buf;
-			
+
 			config = MpiBlastConfig( local, shared );
 		}
-		
+
 		// if the user wants a "clean" run, create a temp
 		// directory on the local storage device for the job
 		if( remove_db )
@@ -2459,30 +2459,30 @@ int MpiBlast::main( int argc, char* argv[] )
 		}
 
 		ncbiblast->SetDBType(db_type);
-				
+
 		// set location of substitution matrices if not set by the user
 		if( getenv( "BLASTMAT" ) == NULL ){
 			string env_str = "BLASTMAT=" + config.sharedPath();
 			setEnvironmentVariable( env_str.c_str() );
 		}
-		
+
 		//
 		// open the log file
 		//
 		if( log_file_name != "" ){
 			ostringstream log_file_str;
-			log_file_str << log_file_name << "." << rank;
+			log_file_str << log_file_name << "." << my_rank;
 			log_file.open( log_file_str.str().c_str() );
-			
+
 			if( !log_file.is_open() ){
 				cerr << "Error opening log file \"" << log_file_name << "\"\n";
 				throw __FILE__ "(main): Unable to open log file";
 			}
-			
+
 			if( debug_msg ){
 				cout << "logging to " << log_file_str.str() << endl;
 			}
-			
+
 			log_stream = &log_file;
 		}
 
@@ -2520,12 +2520,12 @@ int MpiBlast::main( int argc, char* argv[] )
         }
 
 		ncbiblast->SetSharedDBName(shared_db_name);
-		
-		// have rank 0 count the number of fragments 
+
+		// have rank 0 count the number of fragments
 		// and send the number to workers
-		if( rank == super_master_process ){
+		if( my_rank == super_master_process ){
 			// MPI_File_delete((char*)output_filename.c_str(), MPI_INFO_NULL);
-		
+
 			string mbf_filename = shared_db_name + FRAG_LIST_EXTENSION;
 			FragmentListFile tmp_frag_list_file( mbf_filename, config, database_name, db_type );
 			total_frags = tmp_frag_list_file.fragmentCount();
@@ -2540,7 +2540,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		}
 
 		addOpt( writer_opts, 'd', shared_db_name.c_str() );
-		
+
 		query_file = getFilename( query_filename );
 		local_query_filename = config.localPath() + query_file;
 
@@ -2555,7 +2555,7 @@ int MpiBlast::main( int argc, char* argv[] )
 			if(!doesFileExist(output_filename) || (output_format == 7) ||(output_format == 8) || (output_format == 10) || (output_format == 11) ){
 				LOG_MSG << "To resume a run the outputfile must already exist\n";
 				LOG_MSG << "Only -m 1-6 & 9 are supported for --resume\n";
-				terminateProgram(-1);	
+				terminateProgram(-1);
 			}
 			unsigned int lastquerynum = determineLastQueryNum(output_filename);
 			string new_qf = config.localPath() + query_file + "XXXXXX";
@@ -2563,13 +2563,13 @@ int MpiBlast::main( int argc, char* argv[] )
 			// Overwrite the query value in the writer's argument list
 			addOpt( writer_opts, 'i', new_qf.c_str() );
 			registerFileToDelete( new_qf );
-			query_filename = new_qf ; 
+			query_filename = new_qf ;
 		}
 */
-		
+
 		GroupManager::Instance(partition_size, total_frags);
 		if(debug_msg) {
-			if(rank == super_master_process) {
+			if(my_rank == super_master_process) {
 				LOG_MSG << "Printing group map: " << endl;
 				GroupManager::Instance()->PrintGroupMap(*log_stream);
 				LOG_MSG << endl;
@@ -2578,8 +2578,8 @@ int MpiBlast::main( int argc, char* argv[] )
 
 		CreateGroupComm();
 
-		if(group_rank != 0 && rank != super_master_process) {
-			string fragment_filename = config.localPath() + database_name + FRAG_LIST_EXTENSION;	
+		if(group_rank != 0 && my_rank != super_master_process) {
+			string fragment_filename = config.localPath() + database_name + FRAG_LIST_EXTENSION;
 			if(use_virtual_frags) {
 				frag_list_file = FragmentListFile( fragment_filename, config, database_name, db_type, true );
 			} else {
@@ -2591,9 +2591,9 @@ int MpiBlast::main( int argc, char* argv[] )
 
 		if(predistribute_db) {
 			double distribute_start_time = MPI_Wtime();
-			
+
 			if(debug_msg) LOG_MSG << "Start distributing db" << endl;
-			
+
 			DistributeDB();
 
 			if(debug_msg) LOG_MSG << "End distributing db" << endl;
@@ -2603,7 +2603,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		}
 
 		// Have the supermaster process send the query and gi filter file to all the other processes
-		if( rank == super_master_process ){
+		if( my_rank == super_master_process ){
 
 			if( !isRemotePath( query_filename ) || copy_via == COPY_VIA_MPI){
 				// The query is either (a) on the masters local disk or (b) visible to the master
@@ -2616,7 +2616,7 @@ int MpiBlast::main( int argc, char* argv[] )
 				if( copyFile( query_filename, local_query_filename, copy_via ) != 0 ){
 					LOG_MSG << "Unable to copy " << query_filename << " to "
 					     << local_query_filename << endl;
-					     
+
 					throw __FILE__ "(main): Unable to copy query to master";
 				}
 
@@ -2632,11 +2632,11 @@ int MpiBlast::main( int argc, char* argv[] )
 			// broadcast the query to every node
 			//
 			double broadcast_track_time = MPI_Wtime();
-			
+
 			if(debug_msg) {
 				LOG_MSG << "Start broadcasting query file" << endl;
 			}
-			
+
 			ncbiblast->SetQueryFile(query_filename);
 			QueryM::Instance(query_filename, query_in_mem);
 
@@ -2644,7 +2644,7 @@ int MpiBlast::main( int argc, char* argv[] )
 				query_file_len = statFileSize(query_filename.c_str()) + 1;
 
 				MPI_Bcast(&query_file_len, 1, MPI_INT, super_master_process, MPI_COMM_WORLD);
-				
+
 				NlmMFILEPtr mfp = VFM::Instance()->InsertMapFile(query_filename, MAPVIRTUAL, query_file_len);
 				char* ptr = (char*)(mfp->mmp_begin);
 				ifstream ifs(query_filename.c_str());
@@ -2652,12 +2652,12 @@ int MpiBlast::main( int argc, char* argv[] )
 					throw __FILE__ "cannot open query file";
 				}
 				ifs.read(ptr, query_file_len - 1);
-				
+
 				ptr[query_file_len - 1] = NULLB;
-				
+
 				MPI_Bcast(ptr, query_file_len, MPI_BYTE, super_master_process, MPI_COMM_WORLD);
 
-			} 
+			}
 
 			if(debug_msg) {
 				LOG_MSG << "End broadcasting query file" << endl;
@@ -2676,7 +2676,7 @@ int MpiBlast::main( int argc, char* argv[] )
 					// JA -- or (c) when using MPI to copy, rank 0 must have direct access to filter
 				}
 				else{
-					// The filter resides on another host (not local to the master). 
+					// The filter resides on another host (not local to the master).
 					// Use rcp to copy the filter to the
 					// masters local disk.
 					if( copyFile( filter_filename, local_filter_filename, copy_via ) != 0 ){
@@ -2729,7 +2729,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		// collect and distribute evalue adjustments
 			// read global DB info from the DBS file
 			ReadDBSpecs(shared_db_name + ".dbs");
-		
+
 			if(debug_msg) {
 				LOG_MSG << "bcast query adjustments start" << endl;
 			}
@@ -2760,11 +2760,11 @@ int MpiBlast::main( int argc, char* argv[] )
 			if(query_in_mem) {
 				query_file_len = 0;
 				MPI_Bcast(&query_file_len, 1, MPI_INT, super_master_process, MPI_COMM_WORLD);
-				
+
 				NlmMFILEPtr mfp = VFM::Instance()->InsertMapFile(query_filename, MAPVIRTUAL, query_file_len);
 				char* ptr = (char*)(mfp->mmp_begin);
 				MPI_Bcast(ptr, query_file_len, MPI_BYTE, super_master_process, MPI_COMM_WORLD);
-			} 
+			}
 
 			if( debug_msg ){
 				LOG_MSG << "End broadcasting query file" << endl;
@@ -2789,7 +2789,7 @@ int MpiBlast::main( int argc, char* argv[] )
 			}
 
 			QueryM::Instance()->BcastIndexes(super_master_process);
-			
+
 			// receive the array size
 			MPI_Bcast( &query_count, 1, MPI_INT, super_master_process, MPI_COMM_WORLD );
 
@@ -2807,7 +2807,7 @@ int MpiBlast::main( int argc, char* argv[] )
 				LOG_MSG << query_count << " adjustments and effective db sizes received successfully\n";
 			}
 		}
-		
+
 		if(!query_segment_size_set && partition_size == node_count - 1) {
 			// if only one group, use one query segment
 			query_segment_size = max_segment_size > query_count? query_count : max_segment_size;
@@ -2819,7 +2819,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		if(debug_msg) {
 			LOG_MSG << "bcast fragment times start" << endl;
 		}
-		if( rank == super_master_process ){
+		if( my_rank == super_master_process ){
 			ncbiblast->MasterDistributeFragTimes();
 		}else{
 			ncbiblast->WorkerRecvFragTimes();
@@ -2831,22 +2831,22 @@ int MpiBlast::main( int argc, char* argv[] )
 		// open a per process output file to dump debug info
 		if(dump_raw_output) {
 			char tmpfile[100];
-			sprintf(tmpfile, "%d.data", rank);
+			sprintf(tmpfile, "%d.data", my_rank);
 			dbgfp=fopen(tmpfile, "w");
 		}
 
 		// write one file for a group for now
 		ostringstream tmp_os;
-		int partition_num = GroupManager::Instance()->GetGroupId(rank);
+		int partition_num = GroupManager::Instance()->GetGroupId(my_rank);
 		if(partition_size != node_count - 1) {
-			tmp_os << output_filename << ".part" << GroupManager::Instance()->GetGroupId(rank);
+			tmp_os << output_filename << ".part" << GroupManager::Instance()->GetGroupId(my_rank);
 			output_filename = tmp_os.str();
 		}
 
 		// if(rank != super_master_process && group_rank == scheduler_process) {
 			// MPI_File_delete((char*)output_filename.c_str(), MPI_INFO_NULL);
 		// }
-		
+
 		// prevent deadloop when some group has nothing to do
 		num_query_segments = query_count / query_segment_size;
 
@@ -2870,7 +2870,7 @@ int MpiBlast::main( int argc, char* argv[] )
 
 		system_init_time = MPI_Wtime() - prog_start;
 
-		if(rank == super_master_process) {
+		if(my_rank == super_master_process) {
 			super_master();
 		} else {
 			if( group_rank == scheduler_process ) {
@@ -2883,7 +2883,7 @@ int MpiBlast::main( int argc, char* argv[] )
 		if(dump_raw_output) {
 			fclose(dbgfp);
 		}
-		
+
 	}
 	catch(const char *error){
 		cerr << "Fatal Error:" << endl;
@@ -2899,10 +2899,10 @@ int MpiBlast::main( int argc, char* argv[] )
 /*	catch(...){
 		cerr << "Fatal Unhandled Exception!" << endl;
 		MPI_Abort( MPI_COMM_WORLD, -1 );
-		
+
 		return -1;
 	}
-*/	
+*/
 	// clean up
 	cleanupNCBI();
 
@@ -2937,7 +2937,7 @@ unsigned int determineLastQueryNum(const std::string outputfile){
 	outputfile_out.seekp(lastQpos);
 	outputfile_out << "";
 	outputfile_out.close();
-	
+
 	return(lastquerynum);
 }
 

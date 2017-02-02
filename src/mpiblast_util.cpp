@@ -6,18 +6,18 @@
 ** following terms and conditions before using this software. Your use
 ** of this Software indicates your acceptance of this license agreement
 ** and all terms and conditions.
-** 
+**
 ** The parallel input/output (PIO) portion of this work was based in
 ** part on published research that was supported by the North Carolina
 ** State University and Oak Ridge National Laboratory. The actual
 ** implementation was completed at Virginia Tech in the summer of 2007.
-** 
+**
 ** Additionally, portions of this work are derivative works of the NCBI
 ** C Toolkit. Although, the NCBI C Toolkit is released freely without
 ** restriction under the terms of their license, the following files
 ** listed below, have been modified by Virginia Tech, and as such are
 ** redistributed under the terms of this license.
-** 
+**
 ** ncbi/api/txalign.c
 ** ncbi/corelib/ncbifile.c
 ** ncbi/object/objalign.c
@@ -29,20 +29,20 @@
 ** ncbi/tools/ncbisam.c
 ** ncbi/tools/readdb.c
 ** ncbi/tools/readdb.h
-** 
+**
 ** License:
-** 
+**
 ** This file is part of mpiBLAST.
-** 
-** mpiBLAST is free software: you can redistribute it and/or modify it 
-** under the terms of the GNU General Public License version 2 as published 
-** by the Free Software Foundation. 
-** 
+**
+** mpiBLAST is free software: you can redistribute it and/or modify it
+** under the terms of the GNU General Public License version 2 as published
+** by the Free Software Foundation.
+**
 ** Accordingly, mpiBLAST is distributed in the hope that it will be
 ** useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 ** of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ** General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU General Public License
 ** along with mpiBLAST. If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
@@ -75,7 +75,7 @@ using namespace std;
 /* Logging for debugging and profiling */
 bool debug_msg = false;		/* Default, set to true with --debug */
 std::ostream* log_stream; 		/**< Output stream for logging information */
-int rank;			/**< Rank of the current MPI process */
+int my_rank;			/**< Rank of the current MPI process */
 int node_count;		/**< Number of MPI processes allocated for the job */
 int group_rank;  // rank within a group
 int group_node_count; // how manay procs in my group
@@ -157,8 +157,8 @@ GroupManager* GroupManager::_instance = NULL;
 int IsWorker(int src) {
 	if(src == scheduler_process || src == writer_process) {
 		return 0;
-	} 
-	
+	}
+
 	return 1;
 }
 
@@ -177,15 +177,15 @@ void initNCBI( vector< string >& ncbi_opts ){
 	size_t ncbi_argc = ncbi_opts.size();
 	//char** ncbi_argv = new char*[ ncbi_opts.size() ];
 	char** ncbi_argv = NULL;
-	
+
 	if( debug_msg ) {
 		LOG_MSG << "initializing ncbi ...";
 	}
-	
+
 	if(ncbi_argc > 0){
 		ncbi_argv = (char**)calloc(ncbi_argc, sizeof(char*));
 	}
-	
+
 	for(uint optI = 0; optI < (uint)ncbi_argc; optI++ ){
 		if( debug_msg )
 			CONT_LOG_MSG << ncbi_opts[ optI ] << " ";
@@ -196,9 +196,9 @@ void initNCBI( vector< string >& ncbi_opts ){
 
 	if( debug_msg )
 		CONT_LOG_MSG << endl;
-		
+
 	Nlm_SetupArguments( ncbi_argc, ncbi_argv );
-	
+
 	// Note! Do not clean up the memory allocated in this function!
 	// (i.e. ncbi_argv and ncbi_argv[i]). It is now owned by the
 	// ncbi library. It is not clear if it needs to be deleted with
@@ -206,7 +206,7 @@ void initNCBI( vector< string >& ncbi_opts ){
 	// Since this would require saving the pointer, ncbi_argv, for
 	// future reference, just forget about it (not a lot of memory
 	// is lost anyway ...).
-	
+
 #ifdef MSC_VIRT
 	if ( !_vheapinit(0, 1250, _VM_ALLSWAP) )
 	{
@@ -217,9 +217,9 @@ void initNCBI( vector< string >& ncbi_opts ){
 
 	/* Initialize connection library's logger, registry and lock */
 	CONNECT_Init( 0 );
-	
+
 	if( debug_msg ) {
-		LOG_MSG << "\n(" << rank << ") done initializing ncbi." << endl;
+		LOG_MSG << "\n(" << my_rank << ") done initializing ncbi." << endl;
 	}
 }
 
@@ -255,22 +255,22 @@ void addOpt(vector< string >& opt_vector, int opt_character, const char* opt_arg
 void SendIntVec(MPI_Comm comm, vector<int> &vec, int dest, int tag)
 {
 	size_t count = vec.size();
-	
+
 	MPI_Send(&count, 1, MPI_INT, dest, tag, comm);
 
 	if(count > 0){
 		int *tmp = (int*)calloc(count, sizeof(int));
-		
+
 		if(tmp == NULL){
 			throw __FILE__ "SendIntVec: Unable to allocate memory for buffer";
 		}
-		
+
 		for(size_t i = 0;i < count;i++){
 			tmp[i] = vec[i];
 		}
 
 		MPI_Send(tmp, count, MPI_INT, dest, tag, comm);
-			
+
 		free(tmp);
 	}
 
@@ -279,24 +279,24 @@ void SendIntVec(MPI_Comm comm, vector<int> &vec, int dest, int tag)
 void RecvIntVec(MPI_Comm comm, vector<int> &vec, int src, int tag)
 {
 	int count;
-	
+
 	MPI_Recv(&count, 1, MPI_INT, src, tag, comm, MPI_STATUS_IGNORE);
-	
+
 	vec = vector<int>(count);
-	
+
 	if(count > 0){
 		int *tmp = (int*)calloc(count, sizeof(int));
-		
+
 		if(tmp == NULL){
 			throw __FILE__ "RecvIntVec: Unable to allocate memory for buffer";
 		}
-		
+
 		MPI_Recv(tmp, count, MPI_INT, src, tag, comm, MPI_STATUS_IGNORE);
-		
+
 		for(int i = 0;i < count;i++){
 			vec[i] = tmp[i];
 		}
-			
+
 		free(tmp);
 	}
 }
@@ -304,68 +304,68 @@ void RecvIntVec(MPI_Comm comm, vector<int> &vec, int src, int tag)
 void broadcastFile( string& b_filename ){
 	ifstream b_file;
 	char* b_buf;
-	
+
 	b_file.open( b_filename.c_str(), ios::binary );
-	
+
 	if( !b_file.is_open() ){
 		cerr << "Error opening \"" << b_filename << "\"\n";
 		throw __FILE__ "(MpiBlast::broadcastFile): Unable to open file";
 	}
-	
+
 	b_file.seekg( 0, ios::end );
-	
+
 	uint b_filesize = b_file.tellg();
-	
+
 	if( debug_msg ){
 		LOG_MSG << "broadcasting file size of " << b_filesize << endl;
 	}
-	
+
 	MPI_Bcast( &b_filesize, 1, MPI_UNSIGNED, super_master_process, MPI_COMM_WORLD );
-	
+
 	if( debug_msg ){
 		LOG_MSG << "file size broadcasted\n";
 	}
-	
+
 	//b_buf = new char[ b_filesize ];
 	b_buf = (char*)calloc(b_filesize, sizeof(unsigned char));
-	
+
 	if(b_buf == NULL){
 		throw __FILE__ "(MpiBlast::broadcastFile): Unable to allocate memory";
 	}
-	
+
 	b_file.seekg( 0, ios::beg );
-	
+
 	if( b_file.read( b_buf, b_filesize ) ){
 		uint b_read = b_file.gcount();
 		if( b_read != b_filesize ){
-		
+
 			free(b_buf);
-			
+
 			cerr << "Only read " << b_read << " of " << b_filesize << " bytes\n";
 			cerr << "Error completely reading \"" << b_filename << "\"\n";
-			
+
 			throw __FILE__ "(MpiBlast::broadcastFile): Error completely reading file";
 		}
-		
+
 		if( debug_msg ){
 			LOG_MSG << "broadcasting file\n";
 		}
-		
+
 		MPI_Bcast( b_buf, b_read, MPI_BYTE, super_master_process, MPI_COMM_WORLD );
-		
+
 		if( debug_msg ){
 			LOG_MSG << "file broadcasted\n";
 		}
 	}else{
 		free(b_buf);
-		
+
 		cerr << "Error reading\"" << b_filename << "\"\n";
-		
+
 		throw __FILE__ "(MpiBlast::broadcastFile):Error reading file";
 	}
-	
+
 	b_file.close();
-	
+
 	free(b_buf);
 }
 
@@ -377,26 +377,26 @@ void recvBroadcastFile( string& b_filename ){
 	if( debug_msg ){
 		LOG_MSG << "waiting for file size broadcast\n";
 	}
-	
+
 	uint b_filesize;
-	
+
 	MPI_Bcast( &b_filesize, 1, MPI_UNSIGNED, super_master_process, MPI_COMM_WORLD );
-	
+
 	if( debug_msg ){
 		LOG_MSG << "received file size broadcast of " << b_filesize << endl;
 	}
-	
+
 	//b_buf = new char[ b_filesize ];
 	b_buf = (char*)calloc(b_filesize, sizeof(unsigned char));
-	
+
 	if(b_buf == NULL){
 		throw __FILE__ "(MpiBlast::recvBroadcastFile): Unable to allocate memory";
 	}
-	
+
 	if( debug_msg ){
 		LOG_MSG << "opening receive file " << b_filename << endl;
 	}
-	
+
 	b_file.open( b_filename.c_str() );
 
 	if(!b_file.is_open()){
@@ -404,20 +404,20 @@ void recvBroadcastFile( string& b_filename ){
 		cerr << "Error opening file: " << b_filename.c_str() << endl;
 		throw __FILE__ "(MpiBlast::recvBroadcastFile): Unable to open file";
 	}
-	
+
 	if( debug_msg ){
 		LOG_MSG << "receiving file to " << b_filename << endl;
 	}
-	
+
 	MPI_Bcast( b_buf, b_filesize, MPI_BYTE, super_master_process, MPI_COMM_WORLD );
-	
+
 	if( debug_msg ){
 		LOG_MSG << "received file broadcast\n";
 	}
-	
+
 	b_file.write( b_buf, b_filesize );
 	b_file.close();
-	
+
 	free(b_buf);
 }
 
@@ -430,10 +430,10 @@ void sendFile( const string& filename, int dest, int tag ){
 		LOG_MSG << "Unable to open \"" << filename << "\"\n";
 		throw "Unable to open file for send.";
 	}
-	
+
 	// send the file size
 	file_input.seekg( 0, ios::end );
-	uint filesize = file_input.tellg();	
+	uint filesize = file_input.tellg();
 	MPI_Send( &filesize, 1, MPI_UNSIGNED, dest, tag, MPI_COMM_WORLD );
 	file_input.seekg( 0, ios::beg );
 
@@ -456,18 +456,18 @@ void recvFile( const string& filename, int src, int tag ){
 	ofstream output_file;
 	char* buffer;
 	int bufsize = max_data_to_send;
-	
+
 	output_file.open( filename.c_str() );
 	if( !output_file.is_open() ){
 		throw "Unable to open file";
 	}
 
 	uint b_filesize;
-	
+
 	MPI_Recv( &b_filesize, 1, MPI_UNSIGNED, src, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-	
+
 	meta_MPI_Alloc_mem( bufsize, MPI_INFO_NULL, &buffer );
-	
+
 	while( output_file.tellp() < b_filesize ){
 		int remaining = b_filesize - output_file.tellp() < bufsize ? b_filesize - output_file.tellp() : bufsize;
 		MPI_Recv( buffer, remaining, MPI_BYTE, src, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
@@ -482,7 +482,7 @@ void printProgress (uint64 progress_sofar, float64 total) {
 	float ratio = (float)temp_ratio / 100.0 ;
 	cout << setprecision(2);
 	cout << "\b\b\b\b\b" << ratio << "%" ;
-	if (progress_sofar == total) 
+	if (progress_sofar == total)
 		cout << "\b\b\b\b\b\b" ;
 	cout.flush();
 }
@@ -518,7 +518,7 @@ GroupManager::GroupManager(int group_size, int num_frags) {
 		}
 		proc_pool.push_back(proc_id);
 	}
-	
+
 	_num_groups = (node_count - 1) / _group_size;
 	int remain = (node_count - 1) % _group_size;
 
@@ -530,9 +530,9 @@ GroupManager::GroupManager(int group_size, int num_frags) {
 			_actual_group_size[group_id]++;
 		}
 	}
-	
+
 	if( remain > 0 ) {
-		int last_group = -1; 
+		int last_group = -1;
 
 		if(remain >= num_frags) {
 			_num_groups++;
@@ -540,7 +540,7 @@ GroupManager::GroupManager(int group_size, int num_frags) {
 		}
 
 		last_group = _num_groups - 1;
-		
+
 		for(; i<proc_pool.size(); i++) {
 			_proc_group[proc_pool[i]] = last_group;
 			_actual_group_size[last_group]++;
