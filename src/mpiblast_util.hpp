@@ -6,18 +6,18 @@
 ** following terms and conditions before using this software. Your use
 ** of this Software indicates your acceptance of this license agreement
 ** and all terms and conditions.
-** 
+**
 ** The parallel input/output (PIO) portion of this work was based in
 ** part on published research that was supported by the North Carolina
 ** State University and Oak Ridge National Laboratory. The actual
 ** implementation was completed at Virginia Tech in the summer of 2007.
-** 
+**
 ** Additionally, portions of this work are derivative works of the NCBI
 ** C Toolkit. Although, the NCBI C Toolkit is released freely without
 ** restriction under the terms of their license, the following files
 ** listed below, have been modified by Virginia Tech, and as such are
 ** redistributed under the terms of this license.
-** 
+**
 ** ncbi/api/txalign.c
 ** ncbi/corelib/ncbifile.c
 ** ncbi/object/objalign.c
@@ -29,20 +29,20 @@
 ** ncbi/tools/ncbisam.c
 ** ncbi/tools/readdb.c
 ** ncbi/tools/readdb.h
-** 
+**
 ** License:
-** 
+**
 ** This file is part of mpiBLAST.
-** 
-** mpiBLAST is free software: you can redistribute it and/or modify it 
-** under the terms of the GNU General Public License version 2 as published 
-** by the Free Software Foundation. 
-** 
+**
+** mpiBLAST is free software: you can redistribute it and/or modify it
+** under the terms of the GNU General Public License version 2 as published
+** by the Free Software Foundation.
+**
 ** Accordingly, mpiBLAST is distributed in the hope that it will be
 ** useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 ** of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ** General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU General Public License
 ** along with mpiBLAST. If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
@@ -70,7 +70,7 @@ extern std::ostream* log_stream; 		/**< Output stream for logging information */
 extern double realstarttime ;		/* Given value immediately on first line of main, before MPI_Init */
 extern double prog_start;		/* Given value after MPI_Init and MPE defs */
 extern double prog_end ;		/* Given value right before MPI_Finalize */
-extern int rank;			/**< Rank of the current MPI process */
+extern int my_rank;			/**< Rank of the current MPI process */
 extern int node_count;		/**< Number of MPI processes allocated for the job */
 extern int group_rank;  // rank within a group
 extern int group_node_count; // how manay procs in my group
@@ -135,9 +135,9 @@ extern double process_output_time;
 extern double curr_process_output_time;
 
 extern int max_num_write;
-extern int peak_pending_offsets;  
+extern int peak_pending_offsets;
 
-extern int max_pending_offsets; 
+extern int max_pending_offsets;
 
 extern int num_threads;
 extern int num_reserved_events;
@@ -149,12 +149,12 @@ extern const int offset_size;
 
 #ifdef USING_MPI
 #include <iomanip>
-#define LOG_MSG (*log_stream) << "[" << rank << "]\t" << setiosflags(ios::fixed) << setw(20) << setprecision(6) << MPI_Wtime() - prog_start << '\t'
+#define LOG_MSG (*log_stream) << "[" << my_rank << "]\t" << setiosflags(ios::fixed) << setw(20) << setprecision(6) << MPI_Wtime() - prog_start << '\t'
 #else
 #define LOG_MSG (*log_stream)
 #endif // USING_MPI
 
-#define CONT_LOG_MSG (*log_stream) 
+#define CONT_LOG_MSG (*log_stream)
 
 /**
  * Initializes the NCBI library with a particular vector of options
@@ -201,16 +201,16 @@ class GroupManager {
 
 			return _instance;
 		}
-		
+
 		static GroupManager* Instance() {
 			return _instance;
 		}
 
-		int GetGroupId(int world_rank) { 
-			return _proc_group[world_rank]; 
+		int GetGroupId(int world_rank) {
+			return _proc_group[world_rank];
 		}
 		int Rank2GroupRank(int world_rank); // need to add one map
-		int GroupRank2Rank(int group_rank, int group_id); 
+		int GroupRank2Rank(int group_rank, int group_id);
 		int GetNumGroups() { return _num_groups; }
 		int GetGroupSize(int group_id) { return _actual_group_size[group_id]; }
 		void PrintGroupMap(std::ostream& os);
