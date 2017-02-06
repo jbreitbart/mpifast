@@ -1,4 +1,4 @@
-The executable files were built on Fri Jun 27 13:18:05 CEST 2014
+The executable files were built on Mon Feb  6 09:06:35 CET 2017
 The version number of each individual application
 may be found in the appropriate documentation files in ./ncbi/doc/
-uname -a ouput is: Linux login04 3.0.101-0.7.15-default #1 SMP Wed Jan 15 22:13:35 UTC 2014 (0e621ee) x86_64 x86_64 x86_64 GNU/Linux
+uname -a ouput is: Linux pandora3 3.10.0-514.2.2.el7.x86_64 #1 SMP Tue Dec 6 23:06:41 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
